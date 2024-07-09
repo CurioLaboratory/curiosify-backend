@@ -1,6 +1,7 @@
+require("dotenv").config();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const User = require("../../models/users/User");
+const User = require("../../models/auth/User");
 
 exports.signup = async (req, res) => {
     try {
@@ -94,3 +95,15 @@ exports.login = async (req, res) => {
         });
     }
 };
+
+exports.getuserdetails = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Some Internal Server Error---");
+    }
+}
