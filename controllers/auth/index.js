@@ -6,7 +6,14 @@ const User = require("../../models/auth/User");
 exports.signup = async (req, res) => {
     try {
         const userData = req.body;
+        const existingUser = await User.findOne({ email: userData.email });
 
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "A user with this email already exists.",
+            });
+        }
         const rollNo =
             userData.role === "student" ? userData.rollNo : undefined;
 
@@ -70,7 +77,7 @@ exports.login = async (req, res) => {
                         role: user.role,
                     },
                     process.env.JWT_SECRET,
-                    { expiresIn: process.env.JWT_EXPIRES_IN }
+                    // { expiresIn: process.env.JWT_EXPIRES_IN }
                 );
 
                 res.status(200).json({

@@ -4,10 +4,7 @@ const mongostr = process.env.MONGO_STR;
 
 const connectToMongo = () => {
     mongoose
-        .connect(mongostr, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        .connect(mongostr)
         .then(console.log("Connected to MongoDB"))
         .catch((err) => console.log("NOT CONNECTED TO NETWORK", err))
 }

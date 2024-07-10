@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
+require("dotenv").config();
 
 const fetchuser = (req, res, next) => {
     const token = req.header('authToken');
     if (!token) {
-        console.error(error.message);
         return res.status(401).json({ error: "Enter the Valid Athentication" });
     }
     try {
@@ -16,4 +16,4 @@ const fetchuser = (req, res, next) => {
     }
 }
 
-module.exports = fetchuser;
+module.exports = { fetchuser };
