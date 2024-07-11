@@ -9,6 +9,7 @@ exports.getallevents = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 }
+
 exports.addevents = async (req, res) => {
     const { title, summary, date } = req.body;
     const userId = req.user.id;
