@@ -29,6 +29,7 @@ exports.signup = async (req, res) => {
             salt,
         });
         await newUser.save();
+        // console.log(newUser);
         res.status(201).json({
             success: true,
             user: {
@@ -53,7 +54,7 @@ exports.login = async (req, res) => {
         const { email, password } = req.body;
 
         const user = await User.findOne({ email }).select(
-            "email hashedPwd role salt"
+            "email name hashedPwd role salt rollNo"
         );
 
         if (!user) {
@@ -79,6 +80,8 @@ exports.login = async (req, res) => {
                     process.env.JWT_SECRET,
                     // { expiresIn: process.env.JWT_EXPIRES_IN }
                 );
+
+                // console.log(user);
 
                 res.status(200).json({
                     success: true,
