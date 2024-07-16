@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const middleware = require('../../middleware/index.js')
+const middleware = require('../../middlewares/index');
 // fetch controller functions
 const userControllers = require('../../controllers/auth/index');
 

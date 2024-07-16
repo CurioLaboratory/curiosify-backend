@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const middleware = require('../../middleware/index.js')
-const eventControllers = require('../../controllers/events/index')
+const middleware = require('../../middlewares/index');
+const eventControllers = require('../../controllers/events/index');
 
 router.route('/getallevent').get(eventControllers.getallevents)
 router.route('/addevent').post(middleware.fetchuser, eventControllers.addevents)

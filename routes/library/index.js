@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const middleware = require('../../middleware/index.js')
-const libraryControllers = require('../../controllers/library/index')
+const middleware = require('../../middlewares/index');
+const libraryControllers = require('../../controllers/library/index');
 
 router.route('/createmanualresource').post(middleware.fetchuser, libraryControllers.createManualResources);
 router.route('/getallresource').get(libraryControllers.getAllResources);

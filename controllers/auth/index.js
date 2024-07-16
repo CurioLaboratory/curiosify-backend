@@ -51,16 +51,21 @@ exports.signup = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         const user = await User.findOne({ email }).select(
             "email name hashedPwd role salt rollNo"
         );
 
         if (!user) {
-            res.status(203).json({
+            res.status(500).json({
                 success: false,
                 message: "User not found!",
+            });
+        } else if (user.role !== role) {
+            res.status(500).json({
+                success: false,
+                message: "Incorrect Role!"
             });
         } else {
             const hashedPwd = await bcrypt.hash(password, user.salt);

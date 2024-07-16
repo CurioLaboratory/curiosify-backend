@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const middleware = require('../../middleware/index.js')
-const quizControllers = require('../../controllers/quiz/index')
+const middleware = require('../../middlewares/index');
+const quizControllers = require('../../controllers/quiz/index');
 
 router.route('/createmanualquiz').post(middleware.fetchuser, quizControllers.createManualQuiz);
 router.route('/getallquiz').get( quizControllers.getAllQuiz);

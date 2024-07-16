@@ -13,27 +13,26 @@ exports.getAllQuiz = async (req, res) => {
 
 exports.createManualQuiz = async (req, res) => {
 
-    const { language, title, question, options, answer, classLevel, date } = req.body;
+    const { language, title, questions, classLevel, date, createdBy } = req.body;
 
-    if (!language || !title || !question || !options || !answer || !classLevel || !date) {
+    // console.log(req.body);
+    if (!language || !title || !questions || !classLevel || !date || !createdBy) {
         return res.status(400).json({ error: 'All fields are required' });
     }
     const userId = req.user.id;
     const user = await User.findById(userId);
     const existingQuiz = await Quiz.findOne({ title });
     if (existingQuiz) {
-        return res.status(400).json({ message: 'Quiz with this title already exists' });
+        return res.status(203).json({ message: 'Quiz with this title already exists' });
     }
 
     const newQuizItem = new Quiz({
         language,
         title,
-        question,
-        options,
-        answer,
+        questions,
         classLevel,
         date,
-        createdBy: user.email
+        createdBy
     });
     try {
         await newQuizItem.save();
