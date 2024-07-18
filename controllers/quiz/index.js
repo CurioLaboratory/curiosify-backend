@@ -1,7 +1,6 @@
 const User = require('../../models/auth/User')
 const Quiz = require('../../models/quiz/Quiz')
 
-
 exports.getAllQuiz = async (req, res) => {
     try {
         const quizzes = await Quiz.find();
@@ -56,7 +55,7 @@ exports.deleteQuiz = async (req, res) => {
     }
     try {
         await Quiz.findByIdAndDelete(id);
-        res.json({ success: true, message: "Quiz deleted successfully" });
+        res.status(200).json({ success: true, message: "Quiz deleted successfully" });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
