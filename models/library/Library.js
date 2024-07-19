@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const LibrarySchema = new mongoose.Schema({  
     title: String,
     subject: String,
-    classLevel: String,
+    classLevel: Number,
     date: String,
     createdBy: { type: String, required: true },
 });
