@@ -12,6 +12,7 @@ const QuizSchema = new mongoose.Schema({
     ],
     classLevel: String,
     date: String,
+    totalQuestions:Number,
     createdBy: { type: String, required: true },
 });
 

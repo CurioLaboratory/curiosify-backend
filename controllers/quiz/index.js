@@ -12,7 +12,7 @@ exports.getAllQuiz = async (req, res) => {
 
 exports.createManualQuiz = async (req, res) => {
 
-    const { language, title, questions, classLevel, date, createdBy } = req.body;
+    const { language, title, questions, classLevel, date, createdBy, totalQuestions } = req.body;
 
     // console.log(req.body);
     if (!language || !title || !questions || !classLevel || !date || !createdBy) {
@@ -31,7 +31,8 @@ exports.createManualQuiz = async (req, res) => {
         questions,
         classLevel,
         date,
-        createdBy
+        createdBy,
+        totalQuestions
     });
     try {
         await newQuizItem.save();
