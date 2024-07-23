@@ -7,6 +7,7 @@ exports.getAllResources = async (req, res) => {
         res.json(resources);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching resources' });
+        return;
     }
 }
 
@@ -35,6 +36,7 @@ exports.createManualResources = async (req, res) => {
         res.status(201).json({ message: 'Resources  added successfully!' });
     } catch (error) {
         res.status(500).json({ error: 'Error saving Resources' });
+        return;
     }
 }
 
@@ -55,5 +57,6 @@ exports.deleteResouces = async (req, res) => {
         res.json({ success: true, message: "Resources deleted successfully" });
     } catch (err) {
         res.status(500).json({ message: err.message });
+        return;
     }
 }

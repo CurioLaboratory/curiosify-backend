@@ -30,7 +30,7 @@ exports.signup = async (req, res) => {
         });
         await newUser.save();
         // console.log(newUser);
-        res.status(201).json({
+        res.status(200).json({
             success: true,
             user: {
                 id: newUser._id,
