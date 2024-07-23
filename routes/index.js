@@ -7,5 +7,6 @@ router.use("/auth", require("./auth/index"));
 router.use("/event", require("./events/index"));
 router.use("/quiz", require("./quiz/index"));
 router.use("/library", require("./library/index"));
+router.use("/studentManagement", require("./studentManagement/index"));
 
 module.exports = router;

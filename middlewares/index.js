@@ -4,7 +4,7 @@ require("dotenv").config();
 const fetchuser = (req, res, next) => {
     const token = req.header('authToken');
     if (!token) {
-        return res.status(401).json({ error: "Enter the Valid Athentication" });
+        return res.status(401).json({ error: "Enter the Valid Authentication" });
     }
     try {
         const data = jwt.verify(token, process.env.JWT_SECRET);
