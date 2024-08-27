@@ -8,5 +8,6 @@ router.use("/event", require("./events/index"));
 router.use("/quiz", require("./quiz/index"));
 router.use("/library", require("./library/index"));
 router.use("/studentManagement", require("./studentManagement/index"));
+router.use("/flashcard", require("./flashcards/index"));
 
 module.exports = router;
