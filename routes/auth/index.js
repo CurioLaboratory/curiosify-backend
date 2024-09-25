@@ -8,5 +8,6 @@ const userControllers = require('../../controllers/auth/index');
 router.route("/signup").post(userControllers.signup);
 router.route("/login").post(userControllers.login);
 router.route("/getuserdetails").get(middleware.fetchuser, userControllers.getuserdetails);
+router.route("/verify-email").post(userControllers.verifyEmail);
 
 module.exports = router;
