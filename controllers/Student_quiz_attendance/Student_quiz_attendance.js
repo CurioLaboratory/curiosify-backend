@@ -3,22 +3,37 @@ const StudentQuizAttendance = require('../../models/Student_quiz_attendance/Stud
 
 exports.getActiveQuizzes = async (req, res) => {
     try {
+        // Ensure classLevel is a string (in case of type mismatch)
+        const classLevel = req.query.classLevel; // Convert classLevel to string
+
         // Find all quiz IDs from StudentQuizAttendance for the logged-in user
         const attendedQuizRecords = await StudentQuizAttendance.find({ studentId: req.user.email }).select('quizId');
 
         // Extract the quizId values from the attendedQuizRecords
         const attendedQuizIds = attendedQuizRecords.map(record => record.quizId);
 
-        // Find all quizzes where the _id is NOT in the attendedQuizIds
-        const activeQuizzes = await Quiz.find({ _id: { $nin: attendedQuizIds } });
+        // Find all quizzes where the _id is NOT in the attendedQuizIds and classLevel matches the user's classLevel
+        const activeQuizzes = await Quiz.find({ 
+            _id: { $nin: attendedQuizIds }, 
+            classLevel: classLevel  // Filter by the user's classLevel (as a string)
+        });
+
+        // If no quizzes are found, log that information as well
+        if (activeQuizzes.length === 0) {
+            console.log("No quizzes found for classLevel:", classLevel);
+        }
 
         // Return the active quizzes
         res.json(activeQuizzes);
     } catch (error) {
         // Handle any errors
+        console.error("Error fetching active quizzes:", error);
         res.status(500).json({ error: 'Error fetching active quizzes' });
     }
 };
+
+
+
 
 exports.getCompletedQuizzes = async (req, res) => {
     try {
@@ -65,7 +80,9 @@ exports.getIncompleteQuizzes = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Error fetching incomplete quizzes' });
     }
-};exports.getCompletedQuizzes = async (req, res) => {
+};
+
+exports.getCompletedQuizzes = async (req, res) => {
     try {
         // First, get all the completed quiz records for the student
         const completedQuizzesAttendance = await StudentQuizAttendance.find({
