@@ -19,7 +19,8 @@ const chapterSchema = new Schema({
     type: String,
     required: true
   },
-  Modules: [moduleSchema] // Array of modules
+  Modules: [moduleSchema], // Array of modules
+  createdBy: { type: String, required: true },
 });
 
 // Create a model from the schema

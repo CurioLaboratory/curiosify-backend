@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const middleware = require('../../middlewares/index');
-const scanAIControllers = require('../../controllers/createCourse/index');
+const createCourseControllers = require('../../controllers/createCourse/index');
 
-router.route('/saveChapterData').post(middleware.fetchuser, scanAIControllers.saveChapterData);
-
+router.route('/saveChapterData').post(middleware.fetchuser, createCourseControllers.saveChapterData);
+router.route('/saveAssignmentData').post(middleware.fetchuser, createCourseControllers.saveAssignmentData);
 
 module.exports = router;
 

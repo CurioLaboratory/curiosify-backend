@@ -1,4 +1,6 @@
 const Chapter = require("../../models/createCourse/CreateCourse");
+// Change to match the correct case of the filename
+const CreateAssignment = require("../../models/createCourse/createAssignment");
 
 // Controller to save chapter data
 exports.saveChapterData = async (req, res) => {
@@ -18,6 +20,28 @@ exports.saveChapterData = async (req, res) => {
       // Handle errors during the saving process
       console.error('Error saving chapters:', error);
       res.status(500).json({ message: 'An error occurred while saving chapters', error });
+    }
+  };
+
+  exports.saveAssignmentData=async (req,res) =>{
+    try {
+      const { assignmentTitle, assignmentObjective, assignmentGrading, Instructions, createdBy } = req.body;
+  
+      // Create a new Assignment instance
+      const newAssignment = new CreateAssignment({
+        assignmentTitle,
+        assignmentObjective,
+        assignmentGrading,
+        Instructions,
+        createdBy
+      });
+  
+      // Save the assignment to the database
+      await newAssignment.save();
+  
+      res.status(201).json(newAssignment);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
     }
   };
   

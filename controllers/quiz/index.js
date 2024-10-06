@@ -2,8 +2,9 @@ const User = require('../../models/auth/User')
 const Quiz = require('../../models/quiz/Quiz')
 
 exports.getAllQuiz = async (req, res) => {
+    const { userId } = req.query;
     try {
-        const quizzes = await Quiz.find();
+        const quizzes = await Quiz.find({ createdBy: userId });
         res.json(quizzes);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching quiz questions' });
