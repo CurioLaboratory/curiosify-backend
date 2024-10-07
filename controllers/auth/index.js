@@ -43,13 +43,14 @@ exports.signup = async (req, res) => {
               user: process.env.MAILTRAP_USER,
               pass: process.env.MAILTRAP_PASS,
             },
-            secure: false, 
+            secure: true, 
           });
 
-        const verificationUrl = `http://localhost:3000/verify-email?token=${emailToken}`;
+          const baseUrl = process.env.FRONTEND_URL;
+          const verificationUrl = `${baseUrl}/verify-email?token=${emailToken}`;
      
         const mailOptions = {
-            from: '"Curiosify Support" <support@curiosify.com>',
+            from: '"Curiosify" <business@curiosify.in>',
             to: email,
             subject: 'Verify your email',
             html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email address.</p>`,
