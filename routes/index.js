@@ -10,5 +10,6 @@ router.use("/student_quiz_attendance", require("./Student_quiz_attendance/Studen
 router.use("/library", require("./library/index"));
 router.use("/studentManagement", require("./studentManagement/index"));
 router.use("/flashcard", require("./flashcards/index"));
+router.use("/createCourse",require('./createCourse/index'));
 
 module.exports = router;
