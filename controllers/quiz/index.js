@@ -56,7 +56,7 @@ exports.deleteQuiz = async (req, res) => {
         res.status(400).json({ message: "not the valid user" });
     }
     try {
-        await Quiz.findByIdAndDelete(id);
+        await Quiz.fim,ndByIdAndDelete(id);
         res.status(200).json({ success: true, message: "Quiz deleted successfully" });
     } catch (err) {
         res.status(500).json({ message: err.message });
