@@ -1,6 +1,6 @@
 const User = require("../../models/auth/User");
 const Event = require('../../models/events/Event')
-
+const Notification = require('../../models/notification/Notification')
 exports.getallevents = async (req, res) => {
     try {
         const events = await Event.find();
@@ -31,6 +31,21 @@ exports.addevents = async (req, res) => {
 
     try {
         const newEvent = await event.save();
+          // Fetch all users with the role "student" and collect their emails
+        const students = await User.find({ role: 'student'});
+        const studentEmails = students.map(student => student.email); // Extract emails into an array
+
+        // Create a single notification for all students
+        const notification = new Notification({
+            studentId: studentEmails, // Set studentId as an array of student emails
+            itemId: event._id, 
+            type: 'event',
+            message: `New Event added on title: ${event.title}`,
+        });
+        
+        // Save the notification
+        await notification.save();
+
         res.status(201).json(newEvent);
     } catch (err) {
         res.status(400).json({ message: err.message });

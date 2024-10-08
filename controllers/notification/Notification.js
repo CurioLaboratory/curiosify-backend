@@ -1,6 +1,6 @@
-const User = require('../../models/auth/User')
-const Quiz = require('../../models/quiz/Quiz')
-const Notification = require('../../models/notification/Notification')
+const User = require('../../models/auth/User');
+const Quiz = require('../../models/quiz/Quiz');
+const Notification = require('../../models/notification/Notification');
 
 exports.getNotifications = async (req, res) => {
     try {
@@ -17,17 +17,17 @@ exports.getNotifications = async (req, res) => {
             query.type = type;
         }
 
-        // Fetch today's notifications
+        // Fetch today's notifications in reverse order (latest first)
         const todayNotifications = await Notification.find({
             ...query,
             createdAt: { $gte: today }
-        }).populate('itemId');
+        }).populate('itemId').sort({ createdAt: -1 });
 
-        // Fetch other notifications (before today)
+        // Fetch other notifications in reverse order (latest first)
         const otherNotifications = await Notification.find({
             ...query,
             createdAt: { $lt: today }
-        }).populate('itemId');
+        }).populate('itemId').sort({ createdAt: -1 });
 
         // Send response with both today and other notifications
         res.status(200).json({ todayNotifications, otherNotifications });
