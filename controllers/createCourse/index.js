@@ -5,12 +5,12 @@ const CreateAssignment = require("../../models/createCourse/createAssignment");
 // Controller to save chapter data
 exports.saveChapterData = async (req, res) => {
   try {
-    const courseData = req.body; // Expecting one course object with chapters array
+    const {Chapters,createdBy} = req.body; // Expecting one course object with chapters array
 
     // Save the course as one document
-    const {newCourse,createdBy }= new Chapter({
-      Chapters: courseData,
-      createdBy:createdBy
+    const newCourse = new Chapter({
+      Chapters,
+      createdBy
     });
 
     const savedCourse = await newCourse.save();
