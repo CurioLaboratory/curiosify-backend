@@ -4,7 +4,7 @@ const middleware = require('../../middlewares/index');
 const quizControllers = require('../../controllers/quiz/index');
 
 router.route('/createmanualquiz').post(middleware.fetchuser, quizControllers.createManualQuiz);
-router.route('/getallquiz').get( quizControllers.getAllQuiz);
+router.route('/getallquiz').get(middleware.fetchuser, quizControllers.getAllQuiz);
 router.route('/deletequiz/:id').delete(middleware.fetchuser, quizControllers.deleteQuiz);
 router.route('/createAIquiz').post(middleware.fetchuser,quizControllers.createAIquiz);
 

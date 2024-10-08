@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
-require('dotenv').config()
-const mongostr = process.env.MONGO_STR;
+require('dotenv').config();
+
+const mongostr = process.env.MONGO_STR; // Load MongoDB URI from environment variables
 
 const connectToMongo = () => {
     mongoose
-        .connect("mongodb://127.0.0.1:27017/curio")
-        .then(console.log("Connected to MongoDB"))
-        .catch((err) => console.log("NOT CONNECTED TO NETWORK", err))
-}
+        .connect(mongostr, { useNewUrlParser: true, useUnifiedTopology: true }) // Use the correct MongoDB connection string
+        .then(() => console.log("Connected to MongoDB"))
+        .catch((err) => console.log("NOT CONNECTED TO NETWORK", err));
+};
 
 module.exports = connectToMongo;

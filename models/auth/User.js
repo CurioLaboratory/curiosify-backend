@@ -22,10 +22,14 @@ const User = new mongoose.Schema({
     rollNo: {
         type: String,
     },
+    classLevel:{
+        type:String,
+    },
     salt: {
         type: String,
         required: true,
     },
+    isVerified: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model("User", User);
