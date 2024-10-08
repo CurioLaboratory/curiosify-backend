@@ -1,29 +1,23 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const Schema = mongoose.Schema;
 
-// Define the schema for each module
+// Define the Module schema
 const moduleSchema = new Schema({
-  Name: {
-    type: String,
-    required: true
-  },
-  Explainantion: {
-    type: String,
-    required: true
-  }
+  Name: { type: String, required: true },
+  Explanation: { type: String, required: true }
 });
 
-// Define the schema for each chapter
+// Define the Chapter schema
 const chapterSchema = new Schema({
-  Chapter: {
-    type: String,
-    required: true
-  },
-  Modules: [moduleSchema], // Array of modules
+  Chapter: { type: String, required: true },
+  Modules: [moduleSchema] // Array of modules for each chapter
+});
+
+// Define the Course schema (parent)
+const courseSchema = new Schema({
+  Chapters: [chapterSchema], // Array of chapters
   createdBy: { type: String, required: true },
 });
 
-// Create a model from the schema
-const Chapter = mongoose.model('Chapter', chapterSchema);
-
-module.exports = Chapter;
+// Export the Course model
+module.exports = mongoose.model('Chapter', courseSchema);
