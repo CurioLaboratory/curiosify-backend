@@ -13,6 +13,7 @@ router.use("/studentManagement", require("./studentManagement/index"));
 router.use("/flashcard", require("./flashcards/index"));
 router.use("/useractivityFeed", require("./userActivityFeed/index"));
 router.use("/quizperformance", require("./quizperformance/index"));
-router.use("/userChatHistory", require("./userChatHistory/index"));router.use("/createCourse",require('./createCourse/index'));
+router.use("/userChatHistory", require("./userChatHistory/index"));
+router.use("/createCourse",require('./createCourse/index'));
 
 module.exports = router;
