@@ -80,7 +80,7 @@ exports.deleteQuiz = async (req, res) => {
         res.status(400).json({ message: "not the valid user" });
     }
     try {
-        await Quiz.fim,ndByIdAndDelete(id);
+        await Quiz.findByIdAndDelete(id);
         res.status(200).json({ success: true, message: "Quiz deleted successfully" });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -88,22 +88,38 @@ exports.deleteQuiz = async (req, res) => {
 }
 
 exports.createAIquiz = async (req, res) => {
-    const { language, title, questions, totalQuestions, createdBy, date } = req.body;
+    const { language, title, questions, totalQuestions, createdBy, date,subject,classLevel} = req.body;
 
     try {
         // Create a new quiz instance
         const newQuizItem = new Quiz({
             language,
             title,
+            subject,
             questions,
             totalQuestions,
             createdBy,
-            date
+            date,
+            classLevel
         });
         // Save the quiz to the database
         await newQuizItem.save();
+         // Fetch all users with the role "student" and collect their emails
+         const students = await User.find({ role: 'student',classLevel:classLevel});
+         const studentEmails = students.map(student => student.email); // Extract emails into an array
+ 
+         // Create a single notification for all students
+         const notification = new Notification({
+             studentId: studentEmails, // Set studentId as an array of student emails
+             itemId: newQuizItem._id, 
+             type: 'quiz',
+             message: `New quiz available on title: ${newQuizItem.title}`,
+         });
+         
+         // Save the notification
+         await notification.save();
+         res.status(201).json({ message: 'Quiz question added successfully and students notified!' });
         
-        res.status(201).json({ message: 'Quiz question added successfully!', quiz: newQuizItem });
     } catch (error) {
         console.error("Error saving quiz:", error); // Log the error for debugging
         res.status(500).json({ message: 'Error saving quiz question', error: error.message });
