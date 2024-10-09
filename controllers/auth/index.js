@@ -17,6 +17,8 @@ exports.signup = async (req, res) => {
         }
         const rollNo =
             role === "student" ? req.body.rollNo : undefined;
+        const classLevel =
+            role === "student" ? req.body.classLevel : undefined;    
         const emailToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });    
 
         // Store user details temporarily in Redis
@@ -26,7 +28,8 @@ exports.signup = async (req, res) => {
         name, 
         email, 
         password, 
-        rollNo, 
+        rollNo,
+        classLevel, 
         emailToken
       }));
        // Expire after 1 hour
@@ -40,13 +43,14 @@ exports.signup = async (req, res) => {
               user: process.env.MAILTRAP_USER,
               pass: process.env.MAILTRAP_PASS,
             },
-            secure: false, 
+            secure: true, 
           });
 
-        const verificationUrl = `http://localhost:3000/verify-email?token=${emailToken}`;
+          const baseUrl = process.env.FRONTEND_URL;
+          const verificationUrl = `${baseUrl}/verify-email?token=${emailToken}`;
      
         const mailOptions = {
-            from: '"Curiosify Support" <support@curiosify.com>',
+            from: '"Curiosify" <business@curiosify.in>',
             to: email,
             subject: 'Verify your email',
             html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email address.</p>`,
@@ -75,7 +79,7 @@ exports.login = async (req, res) => {
         const { email, password, role } = req.body;
 
         const user = await User.findOne({ email }).select(
-            "email name hashedPwd role salt rollNo"
+            "email name hashedPwd role salt rollNo classLevel"
         );
 
         if (!user) {
@@ -119,6 +123,8 @@ exports.login = async (req, res) => {
                         email: user.email,
                         rollNo:
                             user.role === "student" ? user.rollNo : undefined,
+                        classLevel:
+                            user.role ==='student'? user.classLevel:  undefined, 
                     },
                 });
             }
@@ -185,6 +191,7 @@ exports.verifyEmail = async (req, res) => {
             email: parsedUserData.email,
             hashedPwd: hashedPassword,
             rollNo: parsedUserData.rollNo,
+            classLevel:parsedUserData.classLevel,
             salt: salt,
             isVerified:true,
         });
@@ -198,6 +205,7 @@ exports.verifyEmail = async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Email verified successfully! You can now log in.",
+            role:newUser.role,
         });
 
     } catch (error) {
