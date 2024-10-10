@@ -1,6 +1,9 @@
 // redis.js
 const redis = require('redis');
-const redisClient = redis.createClient();
+const redisClient = redis.createClient({
+  host: 'rediscurio-hqoywe.serverless.use1.cache.amazonaws.com:6379',
+  port: 6379,
+});
 
 redisClient.on('error', (err) => {
   console.error('Redis error:', err);
