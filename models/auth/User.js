@@ -25,6 +25,9 @@ const User = new mongoose.Schema({
     classLevel:{
         type:String,
     },
+    collegeName:{
+        type:String,
+    },
     salt: {
         type: String,
         required: true,

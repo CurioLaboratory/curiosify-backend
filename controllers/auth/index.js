@@ -6,7 +6,7 @@ const User = require("../../models/auth/User");
 const redisClient =require("../../redisclient")
 exports.signup = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role,collegeName } = req.body;
         const existingUser = await User.findOne({email});
 
         if (existingUser) {
@@ -30,6 +30,7 @@ exports.signup = async (req, res) => {
         password, 
         rollNo,
         classLevel, 
+        collegeName,
         emailToken
       }));
        // Expire after 1 hour
@@ -79,7 +80,7 @@ exports.login = async (req, res) => {
         const { email, password, role } = req.body;
 
         const user = await User.findOne({ email }).select(
-            "email name hashedPwd role salt rollNo classLevel"
+            "email name hashedPwd role salt rollNo classLevel collegeName"
         );
 
         if (!user) {
@@ -121,6 +122,7 @@ exports.login = async (req, res) => {
                         role: user.role,
                         name: user.name,
                         email: user.email,
+                        collegeName:user.collegeName,
                         rollNo:
                             user.role === "student" ? user.rollNo : undefined,
                         classLevel:
@@ -189,6 +191,7 @@ exports.verifyEmail = async (req, res) => {
             role: parsedUserData.role,
             name: parsedUserData.name,
             email: parsedUserData.email,
+            collegeName:parsedUserData.collegeName,
             hashedPwd: hashedPassword,
             rollNo: parsedUserData.rollNo,
             classLevel:parsedUserData.classLevel,

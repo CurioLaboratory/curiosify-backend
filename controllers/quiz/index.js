@@ -13,7 +13,7 @@ exports.getAllQuiz = async (req, res) => {
 }
 
 exports.createManualQuiz = async (req, res) => {
-    const { language, title, questions, classLevel,subject, date, createdBy, totalQuestions } = req.body;
+    const { language, title, questions, classLevel,subject, date, createdBy, totalQuestions,collegeName } = req.body;
 
     // Validate the input fields
     if (!language || !title || !questions || !classLevel || !date || !createdBy||!subject) {
@@ -38,7 +38,8 @@ exports.createManualQuiz = async (req, res) => {
         subject,
         date,
         createdBy,
-        totalQuestions
+        totalQuestions,
+        collegeName
     });
 
     try {
@@ -88,7 +89,7 @@ exports.deleteQuiz = async (req, res) => {
 }
 
 exports.createAIquiz = async (req, res) => {
-    const { language, title, questions, totalQuestions, createdBy, date,subject,classLevel} = req.body;
+    const { language, title, questions, totalQuestions, createdBy, date,subject,classLevel,collegeName} = req.body;
 
     try {
         // Create a new quiz instance
@@ -100,7 +101,8 @@ exports.createAIquiz = async (req, res) => {
             totalQuestions,
             createdBy,
             date,
-            classLevel
+            classLevel,
+            collegeName
         });
         // Save the quiz to the database
         await newQuizItem.save();
