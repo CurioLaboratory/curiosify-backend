@@ -4,23 +4,27 @@ const CreateAssignment = require("../../models/createCourse/createAssignment");
 
 // Controller to save chapter data
 exports.saveChapterData = async (req, res) => {
-    try {
-      // Extract data from the request body
-      const data = req.body; // Make sure the request body contains the JSON data
-  
-      // Save the data using insertMany to handle multiple chapters at once
-      const savedChapters = await Chapter.insertMany(data);
-  
-      // Respond with success message and the saved data
-      res.status(201).json({
-        message: 'Chapters saved successfully!',
-        savedChapters
-      });
-    } catch (error) {
-      // Handle errors during the saving process
-      console.error('Error saving chapters:', error);
-      res.status(500).json({ message: 'An error occurred while saving chapters', error });
-    }
+  try {
+    const {Chapters,createdBy} = req.body; // Expecting one course object with chapters array
+
+    // Save the course as one document
+    const newCourse = new Chapter({
+      Chapters,
+      createdBy
+    });
+
+    const savedCourse = await newCourse.save();
+
+    res.status(201).json({
+      message: 'Course added successfully!',
+      data: savedCourse
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: 'Error adding course',
+      error: error.message
+    });
+  }
   };
 
   exports.saveAssignmentData=async (req,res) =>{
