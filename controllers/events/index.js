@@ -12,7 +12,8 @@ exports.getallevents = async (req, res) => {
 }
 
 exports.addevents = async (req, res) => {
-    const { title, summary, date } = req.body;
+    const { title, summary, date,poster } = req.body;
+    console.log(poster);
     const userId = req.user.id;
     const user = await User.findById(userId);
 
@@ -23,7 +24,7 @@ exports.addevents = async (req, res) => {
 
     const event = new Event({
         title,
-        // poster,
+        poster,
         summary,
         date,
         createdBy: user.email
