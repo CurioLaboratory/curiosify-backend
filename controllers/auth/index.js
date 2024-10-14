@@ -23,16 +23,19 @@ exports.signup = async (req, res) => {
 
         // Store user details temporarily in Redis
       /// const tempuserData = JSON.stringify({ name, email, password, role, emailToken });
-      await redisClient.setEx(email, 3600, JSON.stringify({
-        role, 
-        name, 
-        email, 
-        password, 
-        rollNo,
-        classLevel, 
-        collegeName,
-        emailToken
-      }));
+      
+        await redisClient.setEx(email, 3600, JSON.stringify({
+          role, 
+          name, 
+          email, 
+          password, 
+          rollNo,
+          classLevel, 
+          collegeName,
+          emailToken
+        }));
+     
+      
        // Expire after 1 hour
 
 
@@ -44,7 +47,10 @@ exports.signup = async (req, res) => {
               user: process.env.MAILTRAP_USER,
               pass: process.env.MAILTRAP_PASS,
             },
-            secure: true, 
+            secure:false,
+            tls: {
+                rejectUnauthorized: false, // Disable certificate verification (useful for development)
+            },
           });
 
           const baseUrl = process.env.FRONTEND_URL;
