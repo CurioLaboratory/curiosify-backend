@@ -2,14 +2,23 @@ const User = require("../../models/auth/User");
 const Event = require('../../models/events/Event')
 const Notification = require('../../models/notification/Notification')
 exports.getallevents = async (req, res) => {
+    const { email } = req.query; 
+
     try {
-        const events = await Event.find();
+        // Step 1: Find the user by email
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Step 2: Find events where the collegeName matches
+        const events = await Event.find({ createdBy: { $in: await User.find({ collegeName: user.collegeName }).distinct('email') } });
+        
         res.json(events);
     } catch (err) {
         res.status(500).json({ message: err.message });
-        return;
     }
-}
+};
 
 exports.addevents = async (req, res) => {
     const { title, summary, date,poster } = req.body;
@@ -33,7 +42,7 @@ exports.addevents = async (req, res) => {
     try {
         const newEvent = await event.save();
           // Fetch all users with the role "student" and collect their emails
-        const students = await User.find({ role: 'student'});
+        const students = await User.find({ role: 'student',collegeName:user.collegeName});
         const studentEmails = students.map(student => student.email); // Extract emails into an array
 
         // Create a single notification for all students
@@ -83,20 +92,26 @@ exports.editevents = async (req, res) => {
 exports.deleteevents = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
-    const user = await User.findById(userId);
-
-    const event = await Event.findById(id);
-    if (!event) {
-        return res.status(404).json({ message: "Event not found" });
-    }
-    if (event.createdBy !== user.email) {
-        res.status(400).json({ message: "not the valid user" });
-    }
+    
     try {
+        const user = await User.findById(userId);
+        const event = await Event.findById(id);
+        
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+        
+        if (event.createdBy !== user.email) {
+            // Return early if the user is not valid
+            return res.status(400).json({ message: "Not the valid user" });
+        }
+        
+        // Proceed with event deletion
         await Event.findByIdAndDelete(id);
-        res.json({ success: true, message: "Event deleted successfully" });
+        return res.json({ success: true, message: "Event deleted successfully" });
+
     } catch (err) {
-        res.status(500).json({ message: err.message });
-        return;
+        // Send an error response if something goes wrong
+        return res.status(500).json({ message: err.message });
     }
-}
+};
