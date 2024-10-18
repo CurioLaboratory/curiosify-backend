@@ -225,3 +225,75 @@ exports.verifyEmail = async (req, res) => {
         });
     }
 };
+
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        console.log(req.body)
+        const userId = req.user.id; // Assumes user is authenticated
+
+        const user = await User.findById(userId).select("hashedPwd salt");
+
+        // Verify the old password
+        const isMatch = await bcrypt.compare(currentPassword, user.hashedPwd);
+        if (!isMatch) {
+            return res.json({ success: false, message: "Incorrect old password." });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update the user with the new password
+        user.hashedPwd = hashedNewPassword;
+        user.salt = salt;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Password changed successfully!"
+        });
+    } catch (error) {
+        console.error("Error during password change:", error);
+        res.status(500).json({ success: false, message: "Password change failed." });
+    }
+};
+exports.verifyPassword = async (req, res) => {
+    try {
+      const { password } = req.body;
+      const userId = req.user.id;
+    //   console.log(userId)
+      // Find the user by their ID
+      const user = await User.findById(userId).select("hashedPwd salt");
+  
+      // Verify the password
+      const isMatch = await bcrypt.compare(password, user.hashedPwd);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: "Incorrect password." });
+      }
+  
+      res.status(200).json({ success: true, message: "Password verified." });
+    } catch (error) {
+      console.error("Error verifying password:", error);
+      res.status(500).json({ success: false, message: "Password verification failed." });
+    }
+  };
+  exports.deleteAccount = async (req, res) => {
+    try {
+      const userId = req.user.id;
+  console.log(userId)
+      // Delete the user from the database
+      const deletedUser = await User.findByIdAndDelete(userId);
+  
+      if (!deletedUser) {
+        return res.status(404).json({ success: false, message: "User not found." });
+      }
+  
+      res.status(200).json({ success: true, message: "Account deleted successfully." });
+    } catch (error) {
+      console.error("Error during account deletion:", error);
+      res.status(500).json({ success: false, message: "Account deletion failed." });
+    }
+  };
+    

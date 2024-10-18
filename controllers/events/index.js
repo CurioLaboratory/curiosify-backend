@@ -1,19 +1,58 @@
 const User = require("../../models/auth/User");
 const Event = require('../../models/events/Event')
 const Notification = require('../../models/notification/Notification')
+const io=require('../../server')
+
 exports.getallevents = async (req, res) => {
+    const { email } = req.query; 
+
     try {
-        const events = await Event.find();
+        // Step 1: Find the user by email
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Step 2: Find events where the collegeName matches
+        const events = await Event.find({ createdBy: { $in: await User.find({ collegeName: user.collegeName }).distinct('email') } });
+        
         res.json(events);
     } catch (err) {
         res.status(500).json({ message: err.message });
-        return;
     }
-}
+};
+
+// exports.getalleventsbydate = async (req, res) => {
+//     const { date, email } = req.query; // Get the date and email from query parameters
+//     try {
+//         let events;
+
+//         if (date && email) {
+//             // Parse the date and find events for that day and created by the specific email
+//             const startDate = new Date(date);
+//             const endDate = new Date(startDate);
+//             endDate.setDate(endDate.getDate() + 1);
+
+//             events = await Event.find({
+//                 date: { $gte: startDate, $lt: endDate },
+//                 createdBy: email // Filter by the createdBy field matching the email
+//             });
+//         } else {
+//             // If no date or email is provided, return all events
+//             events = await Event.find();
+//         }
+
+//         res.json(events);
+//     } catch (err) {
+//         res.status(500).json({ message: err.message });
+//     }
+// };
+
+
 
 exports.addevents = async (req, res) => {
     const { title, summary, date,poster } = req.body;
-    console.log(poster);
+   // console.log(poster);
     const userId = req.user.id;
     const user = await User.findById(userId);
 
@@ -94,6 +133,7 @@ exports.deleteevents = async (req, res) => {
     }
     try {
         await Event.findByIdAndDelete(id);
+        
         res.json({ success: true, message: "Event deleted successfully" });
     } catch (err) {
         res.status(500).json({ message: err.message });

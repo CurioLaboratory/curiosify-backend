@@ -20,7 +20,8 @@
     "nodemailer": "^6.9.15",
     "pdfjs-dist": "^4.7.76",
     "pdfreader": "^3.0.5",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "socket.io": "^4.8.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
