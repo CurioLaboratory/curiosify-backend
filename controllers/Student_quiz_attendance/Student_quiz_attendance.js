@@ -3,8 +3,8 @@ const StudentQuizAttendance = require('../../models/Student_quiz_attendance/Stud
 
 exports.getActiveQuizzes = async (req, res) => {
     try {
-        // Ensure classLevel is a string (in case of type mismatch)
-        const classLevel = req.query.classLevel; // Convert classLevel to string
+        const classLevel = String(req.query.classLevel); 
+        const collegeName = String(req.query.collegeName); 
 
         // Find all quiz IDs from StudentQuizAttendance for the logged-in user
         const attendedQuizRecords = await StudentQuizAttendance.find({ studentId: req.user.email }).select('quizId');
@@ -15,7 +15,8 @@ exports.getActiveQuizzes = async (req, res) => {
         // Find all quizzes where the _id is NOT in the attendedQuizIds and classLevel matches the user's classLevel
         const activeQuizzes = await Quiz.find({ 
             _id: { $nin: attendedQuizIds }, 
-            classLevel: classLevel  // Filter by the user's classLevel (as a string)
+            classLevel: classLevel , // Filter by the user's classLevel and collegeName (as a string)
+            collegeName:collegeName
         });
 
         // If no quizzes are found, log that information as well
@@ -130,8 +131,11 @@ exports.submitQuiz = async (req, res) => {
     if (!quiz) {
         return res.status(404).json({ error: 'Quiz not found' });
     }
+   
+    const answeredQuestions = userAnswers.filter(answer => answer !== null);
 
-    const isCompleted = userAnswers.length === quiz.totalQuestions; // Assuming all questions must be answered to complete
+    // Now check if the number of answered questions matches the total number of questions
+    const isCompleted = answeredQuestions.length === quiz.totalQuestions;
     const status = isCompleted ? 'completed' : 'incomplete';
 
     try {

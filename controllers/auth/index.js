@@ -6,8 +6,8 @@ const User = require("../../models/auth/User");
 const redisClient =require("../../redisclient")
 exports.signup = async (req, res) => {
     try {
-        const { name, email, password, role,collegeName } = req.body;
-        const existingUser = await User.findOne({email});
+        const { name, email, password, role, collegeName } = req.body;
+        const existingUser = await User.findOne({ email });
 
         if (existingUser) {
             return res.status(400).json({
@@ -15,66 +15,52 @@ exports.signup = async (req, res) => {
                 message: "A user with this email already exists.",
             });
         }
-        const rollNo =
-            role === "student" ? req.body.rollNo : undefined;
-        const classLevel =
-            role === "student" ? req.body.classLevel : undefined;    
-        const emailToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });    
+
+        const rollNo = role === "student" ? req.body.rollNo : undefined;
+        const classLevel = role === "student" ? req.body.classLevel : undefined;
+        const emailToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // Store user details temporarily in Redis
-      /// const tempuserData = JSON.stringify({ name, email, password, role, emailToken });
-      
         await redisClient.setEx(email, 3600, JSON.stringify({
-          role, 
-          name, 
-          email, 
-          password, 
-          rollNo,
-          classLevel, 
-          collegeName,
-          emailToken
+            role, name, email, password, rollNo, classLevel, collegeName, emailToken
         }));
-     
-      
-       // Expire after 1 hour
 
-
-        // Send verification email
+        // Configure nodemailer to use Amazon SES with STARTTLS on port 587
         const transporter = nodemailer.createTransport({
-            host: process.env.MAILTRAP_HOST,
-            port: process.env.MAILTRAP_PORT,
+            host: process.env.SES_HOST,
+            port: process.env.SES_PORT,
             auth: {
-              user: process.env.MAILTRAP_USER,
-              pass: process.env.MAILTRAP_PASS,
+                user: process.env.SES_USER,
+                pass: process.env.SES_PASS,
             },
-            secure:false,
+            secure: false,  // false for STARTTLS (port 587)
             tls: {
-                rejectUnauthorized: false, // Disable certificate verification (useful for development)
+                rejectUnauthorized: false,  // Optional: Disable certificate verification (useful in development)
             },
-          });
+        });
 
-          const baseUrl = process.env.FRONTEND_URL;
-          const verificationUrl = `${baseUrl}/verify-email?token=${emailToken}`;
-     
+        const baseUrl = process.env.FRONTEND_URL;
+        const verificationUrl = `${baseUrl}/verify-email?token=${emailToken}`;
+
         const mailOptions = {
             from: '"Curiosify" <business@curiosify.in>',
             to: email,
             subject: 'Verify your email',
             html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email address.</p>`,
-          };   
+        };
 
+        // Send email
+        await transporter.sendMail(mailOptions);
 
-          await transporter.sendMail(mailOptions);
-
-          return res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "Registration successful! Please check your email to verify your account.",
-            token:emailToken,
-          });
+            token: emailToken,
+        });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({
+        console.error(error);
+        return res.status(500).json({
             success: false,
             message: "Failed to register user!",
         });

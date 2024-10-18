@@ -47,7 +47,7 @@ exports.createManualQuiz = async (req, res) => {
       const addedquiz= await newQuizItem.save();
 
         // Fetch all users with the role "student" and collect their emails
-        const students = await User.find({ role: 'student',classLevel:classLevel});
+        const students = await User.find({ role: 'student',classLevel:classLevel,collegeName:collegeName});
         const studentEmails = students.map(student => student.email); // Extract emails into an array
 
         // Create a single notification for all students
@@ -107,7 +107,7 @@ exports.createAIquiz = async (req, res) => {
         // Save the quiz to the database
       const addedQuiz=  await newQuizItem.save();
          // Fetch all users with the role "student" and collect their emails
-         const students = await User.find({ role: 'student',classLevel:classLevel});
+         const students = await User.find({ role: 'student',classLevel:classLevel,collegeName:collegeName});
          const studentEmails = students.map(student => student.email); // Extract emails into an array
  
          // Create a single notification for all students
