@@ -13,7 +13,7 @@ exports.getAllQuiz = async (req, res) => {
 }
 
 exports.createManualQuiz = async (req, res) => {
-    const { language, title, questions, classLevel,subject, date, createdBy, totalQuestions } = req.body;
+    const { language, title, questions, classLevel,subject, date, createdBy, totalQuestions,collegeName } = req.body;
 
     // Validate the input fields
     if (!language || !title || !questions || !classLevel || !date || !createdBy||!subject) {
@@ -38,15 +38,16 @@ exports.createManualQuiz = async (req, res) => {
         subject,
         date,
         createdBy,
-        totalQuestions
+        totalQuestions,
+        collegeName
     });
 
     try {
         // Save the new quiz
-        await newQuizItem.save();
+      const addedquiz= await newQuizItem.save();
 
         // Fetch all users with the role "student" and collect their emails
-        const students = await User.find({ role: 'student',classLevel:classLevel});
+        const students = await User.find({ role: 'student',classLevel:classLevel,collegeName:collegeName});
         const studentEmails = students.map(student => student.email); // Extract emails into an array
 
         // Create a single notification for all students
@@ -59,9 +60,9 @@ exports.createManualQuiz = async (req, res) => {
         
         // Save the notification
         await notification.save();
-
+        
         // Respond with success message
-        res.status(201).json({ message: 'Quiz question added successfully and students notified!' });
+        res.status(201).json({ message: 'Quiz question added successfully and students notified!', addedQuiz: addedquiz});
     } catch (error) {
         res.status(500).json({ error: 'Error saving quiz question or sending notifications' });
     }
@@ -88,7 +89,7 @@ exports.deleteQuiz = async (req, res) => {
 }
 
 exports.createAIquiz = async (req, res) => {
-    const { language, title, questions, totalQuestions, createdBy, date,subject,classLevel} = req.body;
+    const { language, title, questions, totalQuestions, createdBy, date,subject,classLevel,collegeName} = req.body;
 
     try {
         // Create a new quiz instance
@@ -100,12 +101,13 @@ exports.createAIquiz = async (req, res) => {
             totalQuestions,
             createdBy,
             date,
-            classLevel
+            classLevel,
+            collegeName
         });
         // Save the quiz to the database
-        await newQuizItem.save();
+      const addedQuiz=  await newQuizItem.save();
          // Fetch all users with the role "student" and collect their emails
-         const students = await User.find({ role: 'student',classLevel:classLevel});
+         const students = await User.find({ role: 'student',classLevel:classLevel,collegeName:collegeName});
          const studentEmails = students.map(student => student.email); // Extract emails into an array
  
          // Create a single notification for all students
@@ -118,7 +120,7 @@ exports.createAIquiz = async (req, res) => {
          
          // Save the notification
          await notification.save();
-         res.status(201).json({ message: 'Quiz question added successfully and students notified!' });
+         res.status(201).json({ message: 'Quiz question added successfully and students notified!',addedQuiz: addedquiz});
         
     } catch (error) {
         console.error("Error saving quiz:", error); // Log the error for debugging

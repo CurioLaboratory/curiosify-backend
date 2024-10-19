@@ -6,8 +6,8 @@ const User = require("../../models/auth/User");
 const redisClient =require("../../redisclient")
 exports.signup = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
-        const existingUser = await User.findOne({email});
+        const { name, email, password, role, collegeName } = req.body;
+        const existingUser = await User.findOne({ email });
 
         if (existingUser) {
             return res.status(400).json({
@@ -15,59 +15,52 @@ exports.signup = async (req, res) => {
                 message: "A user with this email already exists.",
             });
         }
-        const rollNo =
-            role === "student" ? req.body.rollNo : undefined;
-        const classLevel =
-            role === "student" ? req.body.classLevel : undefined;    
-        const emailToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });    
+
+        const rollNo = role === "student" ? req.body.rollNo : undefined;
+        const classLevel = role === "student" ? req.body.classLevel : undefined;
+        const emailToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // Store user details temporarily in Redis
-      /// const tempuserData = JSON.stringify({ name, email, password, role, emailToken });
-      await redisClient.setEx(email, 3600, JSON.stringify({
-        role, 
-        name, 
-        email, 
-        password, 
-        rollNo,
-        classLevel, 
-        emailToken
-      }));
-       // Expire after 1 hour
+        await redisClient.setEx(email, 3600, JSON.stringify({
+            role, name, email, password, rollNo, classLevel, collegeName, emailToken
+        }));
 
-
-        // Send verification email
+        // Configure nodemailer to use Amazon SES with STARTTLS on port 587
         const transporter = nodemailer.createTransport({
-            host: process.env.MAILTRAP_HOST,
-            port: process.env.MAILTRAP_PORT,
+            host: process.env.SES_HOST,
+            port: process.env.SES_PORT,
             auth: {
-              user: process.env.MAILTRAP_USER,
-              pass: process.env.MAILTRAP_PASS,
+                user: process.env.SES_USER,
+                pass: process.env.SES_PASS,
             },
-            secure: true, 
-          });
+            secure: false,  // false for STARTTLS (port 587)
+            tls: {
+                rejectUnauthorized: false,  // Optional: Disable certificate verification (useful in development)
+            },
+        });
 
-          const baseUrl = process.env.FRONTEND_URL;
-          const verificationUrl = `${baseUrl}/verify-email?token=${emailToken}`;
-     
+        const baseUrl = process.env.FRONTEND_URL;
+        const verificationUrl = `${baseUrl}/verify-email?token=${emailToken}`;
+
         const mailOptions = {
             from: '"Curiosify" <business@curiosify.in>',
             to: email,
             subject: 'Verify your email',
             html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email address.</p>`,
-          };   
+        };
 
+        // Send email
+        await transporter.sendMail(mailOptions);
 
-          await transporter.sendMail(mailOptions);
-
-          return res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "Registration successful! Please check your email to verify your account.",
-            token:emailToken,
-          });
+            token: emailToken,
+        });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({
+        console.error(error);
+        return res.status(500).json({
             success: false,
             message: "Failed to register user!",
         });
@@ -79,7 +72,7 @@ exports.login = async (req, res) => {
         const { email, password, role } = req.body;
 
         const user = await User.findOne({ email }).select(
-            "email name hashedPwd role salt rollNo classLevel"
+            "email name hashedPwd role salt rollNo classLevel collegeName"
         );
 
         if (!user) {
@@ -121,6 +114,7 @@ exports.login = async (req, res) => {
                         role: user.role,
                         name: user.name,
                         email: user.email,
+                        collegeName:user.collegeName,
                         rollNo:
                             user.role === "student" ? user.rollNo : undefined,
                         classLevel:
@@ -189,6 +183,7 @@ exports.verifyEmail = async (req, res) => {
             role: parsedUserData.role,
             name: parsedUserData.name,
             email: parsedUserData.email,
+            collegeName:parsedUserData.collegeName,
             hashedPwd: hashedPassword,
             rollNo: parsedUserData.rollNo,
             classLevel:parsedUserData.classLevel,
@@ -216,3 +211,75 @@ exports.verifyEmail = async (req, res) => {
         });
     }
 };
+
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        console.log(req.body)
+        const userId = req.user.id; // Assumes user is authenticated
+
+        const user = await User.findById(userId).select("hashedPwd salt");
+
+        // Verify the old password
+        const isMatch = await bcrypt.compare(currentPassword, user.hashedPwd);
+        if (!isMatch) {
+            return res.json({ success: false, message: "Incorrect old password." });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update the user with the new password
+        user.hashedPwd = hashedNewPassword;
+        user.salt = salt;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Password changed successfully!"
+        });
+    } catch (error) {
+        console.error("Error during password change:", error);
+        res.status(500).json({ success: false, message: "Password change failed." });
+    }
+};
+exports.verifyPassword = async (req, res) => {
+    try {
+      const { password } = req.body;
+      const userId = req.user.id;
+    //   console.log(userId)
+      // Find the user by their ID
+      const user = await User.findById(userId).select("hashedPwd salt");
+  
+      // Verify the password
+      const isMatch = await bcrypt.compare(password, user.hashedPwd);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: "Incorrect password." });
+      }
+  
+      res.status(200).json({ success: true, message: "Password verified." });
+    } catch (error) {
+      console.error("Error verifying password:", error);
+      res.status(500).json({ success: false, message: "Password verification failed." });
+    }
+  };
+  exports.deleteAccount = async (req, res) => {
+    try {
+      const userId = req.user.id;
+  console.log(userId)
+      // Delete the user from the database
+      const deletedUser = await User.findByIdAndDelete(userId);
+  
+      if (!deletedUser) {
+        return res.status(404).json({ success: false, message: "User not found." });
+      }
+  
+      res.status(200).json({ success: true, message: "Account deleted successfully." });
+    } catch (error) {
+      console.error("Error during account deletion:", error);
+      res.status(500).json({ success: false, message: "Account deletion failed." });
+    }
+  };
+    

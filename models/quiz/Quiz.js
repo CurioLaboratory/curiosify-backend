@@ -17,6 +17,7 @@ const QuizSchema = new mongoose.Schema({
     subject: String,
     date: String,
     totalQuestions: Number,
+    collegeName:String,
     createdBy: { type: String, required: true },
 });
 
