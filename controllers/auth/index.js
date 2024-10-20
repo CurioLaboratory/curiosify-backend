@@ -33,9 +33,9 @@ exports.signup = async (req, res) => {
                 user: process.env.SES_USER,
                 pass: process.env.SES_PASS,
             },
-            secure: false,  // false for STARTTLS (port 587)
+            secure: true, // Use true for SSL (port 465)
             tls: {
-                rejectUnauthorized: false,  // Optional: Disable certificate verification (useful in development)
+                rejectUnauthorized: false, // Optional: disable certificate validation (useful for development)
             },
         });
 
