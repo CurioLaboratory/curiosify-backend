@@ -1,9 +1,9 @@
 // redis.js
 const redis = require('redis');
+const redisURl=process.env.REDISS_URL;
 const redisClient = redis.createClient({
 
-  url: 'rediss://rediscurio-hqoywe.serverless.use1.cache.amazonaws.com:6379', 
-  
+  url: redisURl, 
 });
 
 

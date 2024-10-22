@@ -7,6 +7,21 @@ const redisClient =require("../../redisclient")
 exports.signup = async (req, res) => {
     try {
         const { name, email, password, role, collegeName } = req.body;
+
+        // Restricted domains (update this list with the domains you want to restrict)
+        const restrictedDomains = ['gmx.fr']; // Add any domains you want to restrict
+
+        // Extract the domain from the email
+        const emailDomain = email.split('@')[1];
+
+        // Check if the email domain is restricted
+        if (restrictedDomains.includes(emailDomain)) {
+            return res.status(400).json({
+                success: false,
+                message: `Email registration from ${emailDomain} is not allowed.`,
+            });
+        }
+
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
@@ -25,7 +40,7 @@ exports.signup = async (req, res) => {
             role, name, email, password, rollNo, classLevel, collegeName, emailToken
         }));
 
-        // Configure nodemailer to use Amazon SES with STARTTLS on port 587
+        // If the email domain is not restricted, proceed to send the verification email
         const transporter = nodemailer.createTransport({
             host: process.env.SES_HOST,
             port: process.env.SES_PORT,
@@ -33,9 +48,9 @@ exports.signup = async (req, res) => {
                 user: process.env.SES_USER,
                 pass: process.env.SES_PASS,
             },
-            secure: false,  // false for STARTTLS (port 587)
+            secure: true, // Use true for SSL (port 465)
             tls: {
-                rejectUnauthorized: false,  // Optional: Disable certificate verification (useful in development)
+                rejectUnauthorized: false, // Optional: disable certificate validation (useful for development)
             },
         });
 
