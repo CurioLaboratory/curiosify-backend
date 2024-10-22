@@ -31,14 +31,13 @@ const loadSecrets = async () => {
     }
 };
 
-// Connect to Redis after loading secrets
-const connectRedis = async () => {
+(async () => {
     try {
         await loadSecrets(); // Load secrets before connecting to Redis
 
-        // Now create Redis client after REDIS_URL is set
+        const redisURl = process.env.REDIS_URL; // Retrieve the Redis URL after secrets are loaded
         const redisClient = redis.createClient({
-            url: process.env.REDIS_URL,  // Now this should be defined
+            url: redisURl,  // Now this should be defined
         });
 
         redisClient.on('error', (err) => {
@@ -47,13 +46,12 @@ const connectRedis = async () => {
 
         await redisClient.connect();  // Await the connection to Redis
         console.log('Connected to Redis');
-        return redisClient;  // Return the connected Redis client instance
+        console.log(redisURl);
+
+        module.exports = redisClient;  // Export the redisClient after successful connection
 
     } catch (err) {
         console.error('Error connecting to Redis:', err);
-        throw err;  // Rethrow the error to be caught by the caller
+        process.exit(1); // Exit process if Redis connection fails
     }
-};
-
-// Export the Redis connection function
-module.exports = connectRedis;
+})();
