@@ -10,7 +10,6 @@ const app = express();
 // Load secrets before anything else
 (async () => {
     try {
-        await loadSecrets();  // Wait for secrets to load
         await connectToMongo(); // Connect to MongoDB after secrets are loaded
     } catch (error) {
         console.error("Failed to load secrets or connect to MongoDB:", error);
