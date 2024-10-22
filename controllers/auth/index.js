@@ -72,7 +72,9 @@ exports.signup = async (req, res) => {
         // Store user details temporarily in Redis
         await redisClient.setEx(email, 3600, JSON.stringify({
             role, name, email, password, rollNo, classLevel, collegeName, emailToken
-        }));
+        }),{
+    EX: 3600 // Expiration in seconds
+});
 
         // If the email domain is not restricted, proceed to send the verification email
         const transporter = nodemailer.createTransport({
