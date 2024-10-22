@@ -1,14 +1,14 @@
-// redis.js
 const redis = require('redis');
 const AWS = require('aws-sdk');
 const { SecretsManager } = require('aws-sdk');
 
 // Set your region
-const region = 'us-east-1'; // Change this to your desired region
+const region = 'us-east-1'; // Set your region accordingly
 AWS.config.update({ region });
 
 const secretsManager = new SecretsManager();
 
+// Load secrets from AWS Secrets Manager
 const loadSecrets = async () => {
     try {
         const data = await secretsManager.getSecretValue({ SecretId: 'curiosify-backend-secrets' }).promise();
@@ -20,7 +20,7 @@ const loadSecrets = async () => {
             process.env.JWT_SECRET = secret.JWT_SECRET;
             process.env.JWT_EXPIRES_IN = secret.JWT_EXPIRES_IN;
             process.env.FRONTEND_URL = secret.FRONTEND_URL;
-            process.env.REDIS_URL = secret.REDIS_URL;
+            process.env.REDIS_URL = secret.REDIS_URL;  // This needs to be set before creating the Redis client
             process.env.SES_HOST = secret.SES_HOST;
             process.env.SES_PORT = secret.SES_PORT;
             process.env.SES_USER = secret.SES_USER;
@@ -31,36 +31,29 @@ const loadSecrets = async () => {
     }
 };
 
-(async () => {
-    try {
-          await loadSecrets(); // Load secrets before connecting to MongoDB
-    } catch (error) {
-        console.error("Failed to load secrets or connect to MongoDB:", error);
-        process.exit(1); // Exit the process if secrets loading fails
-    }
-})();
-const redisURl=process.env.REDIS_URL;
-const redisClient = redis.createClient({
-
-  url: redisURl, 
-});
-
-
-redisClient.on('error', (err) => {
-  console.error('Redis error:', err);
-});
-
+// Connect to Redis after loading secrets
 const connectRedis = async () => {
-  try {
-     
-    await redisClient.connect();
-    console.log('Connected to Redis');
-    console.log(redisURl);
-  } catch (err) {
-    console.error('Error connecting to Redis:', err);
-  }
+    try {
+        await loadSecrets(); // Load secrets before connecting to Redis
+
+        // Now create Redis client after REDIS_URL is set
+        const redisClient = redis.createClient({
+            url: process.env.REDIS_URL,  // Now this should be defined
+        });
+
+        redisClient.on('error', (err) => {
+            console.error('Redis error:', err);
+        });
+
+        await redisClient.connect();  // Await the connection to Redis
+        console.log('Connected to Redis');
+        return redisClient;  // Return the connected Redis client instance
+
+    } catch (err) {
+        console.error('Error connecting to Redis:', err);
+        throw err;  // Rethrow the error to be caught by the caller
+    }
 };
 
-connectRedis();
-
-module.exports = redisClient;
+// Export the Redis connection function
+module.exports = connectRedis;
