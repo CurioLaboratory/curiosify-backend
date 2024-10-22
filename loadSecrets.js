@@ -1,4 +1,7 @@
 const AWS = require('aws-sdk');
+
+// Set the region
+AWS.config.update({ region: 'us-east-1' }); // Replace with your region if different
 const secretsManager = new AWS.SecretsManager();
 
 async function loadSecrets() {
