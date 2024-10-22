@@ -1,4 +1,4 @@
-require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
