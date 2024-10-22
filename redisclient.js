@@ -13,14 +13,6 @@ const loadSecrets = async () => {
         const data = await secretsManager.getSecretValue({ SecretId: 'curiosify-backend-secrets' }).promise();
         if ('SecretString' in data) {
             const secret = JSON.parse(data.SecretString);
-            console.log('Retrieved secret data:', secret);
-
-            // Check if REDIS_URL exists and log it
-            if (secret.REDIS_URL) {
-                console.log('Redis URL:', secret.REDIS_URL);
-            } else {
-                console.error('REDIS_URL is undefined in the secret');
-            }
 
             // Set environment variables
             process.env.REDIS_URL = secret.REDIS_URL;
