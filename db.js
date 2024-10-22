@@ -1,3 +1,4 @@
+const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
 const mongoose = require("mongoose");
 (async () => {
     try {
