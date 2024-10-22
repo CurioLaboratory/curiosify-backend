@@ -22,7 +22,7 @@ const loadSecrets = async () => {
             process.env.JWT_SECRET = secret.JWT_SECRET;
             process.env.JWT_EXPIRES_IN = secret.JWT_EXPIRES_IN;
             process.env.FRONTEND_URL = secret.FRONTEND_URL;
-            process.env.REDIS_URL = secret.REDIS_URL;  // Set the REDIS_URL here
+            process.env.REDIS_URL = secret.REDIS_URL;
             process.env.SES_HOST = secret.SES_HOST;
             process.env.SES_PORT = secret.SES_PORT;
             process.env.SES_USER = secret.SES_USER;
@@ -30,6 +30,7 @@ const loadSecrets = async () => {
         }
     } catch (err) {
         console.error('Error retrieving secrets:', err);
+        throw err;  // Ensure the error is thrown so it can be handled outside
     }
 };
 
@@ -46,15 +47,12 @@ const connectRedis = async () => {
         // Connect the Redis client
         await redisClient.connect();
         console.log('Connected to Redis');
-        console.log(redisURl);
+        return redisClient;  // Return the connected client
     } catch (err) {
         console.error('Error connecting to Redis:', err);
-        process.exit(1); // Exit process if Redis connection fails
+        throw err; // Propagate the error
     }
 };
 
-// Connect to Redis on startup
-connectRedis();
-
-// Export the Redis client (after it has connected)
-module.exports = redisClient;
+// Export a promise that resolves to the connected Redis client
+module.exports = connectRedis();
