@@ -30,6 +30,15 @@ const loadSecrets = async () => {
         console.error('Error retrieving secrets:', err);
     }
 };
+
+(async () => {
+    try {
+          await loadSecrets(); // Load secrets before connecting to MongoDB
+    } catch (error) {
+        console.error("Failed to load secrets or connect to MongoDB:", error);
+        process.exit(1); // Exit the process if secrets loading fails
+    }
+})();
 const redisURl=process.env.REDISS_URL;
 const redisClient = redis.createClient({
 
@@ -43,7 +52,7 @@ redisClient.on('error', (err) => {
 
 const connectRedis = async () => {
   try {
-       await loadSecrets(); // Load secrets before connecting to MongoDB
+     
     await redisClient.connect();
     console.log('Connected to Redis');
     console.log(redisURl);
