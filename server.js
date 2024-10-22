@@ -9,14 +9,19 @@ const app = express();
 
 // Load secrets before anything else
 (async () => {
-    await loadSecrets();  // Wait for secrets to load
-    connectToMongo();     // Connect to MongoDB after secrets are loaded
+    try {
+        await loadSecrets();  // Wait for secrets to load
+        await connectToMongo(); // Connect to MongoDB after secrets are loaded
+    } catch (error) {
+        console.error("Failed to load secrets or connect to MongoDB:", error);
+        process.exit(1); // Exit the process if secrets loading fails
+    }
 })();
 
 const corsOptions = {
-  origin: 'https://usecuriosify.in',  // Your frontend domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allowed methods
-  credentials: true,  // If you are using cookies or auth headers
+    origin: 'https://usecuriosify.in',  // Your frontend domain
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allowed methods
+    credentials: true,  // If you are using cookies or auth headers
 };
 
 app.use(cors(corsOptions));
@@ -27,7 +32,7 @@ app.get('/test', (req, res) => {
     res.send("Test API success");
 });
 
-app.use("/api", require("./routes/index"));
+app.use("/api", require("./routes/index")); // Your routes
 
 // Redis connection setup
 redisClient.on('connect', () => {
