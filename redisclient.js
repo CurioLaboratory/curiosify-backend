@@ -3,7 +3,7 @@ const AWS = require('aws-sdk');
 const { SecretsManager } = require('aws-sdk');
 
 // Set your region
-const region = 'us-east-1'; // Change this to your desired region
+const region = 'us-east-1'; 
 AWS.config.update({ region });
 
 const secretsManager = new SecretsManager();
@@ -23,7 +23,7 @@ const loadSecrets = async () => {
             }
 
             // Set environment variables
-            process.env.REDIS_URL = secret.REDIS_URL; // Directly assign without quotes
+            process.env.REDIS_URL = secret.REDIS_URL;
         }
     } catch (err) {
         console.error('Error retrieving secrets:', err);
@@ -33,9 +33,9 @@ const loadSecrets = async () => {
 const connectRedis = async () => {
     await loadSecrets(); // Load secrets before connecting to Redis
 
-    const redisURl = process.env.REDIS_URL; // Load Redis URI from environment variables
+    const redisURL = process.env.REDIS_URL; 
     const redisClient = redis.createClient({
-        url: redisURl,
+        url: redisURL,
     });
 
     redisClient.on('error', (err) => {
@@ -45,12 +45,11 @@ const connectRedis = async () => {
     try {
         await redisClient.connect();
         console.log('Connected to Redis');
-        console.log(redisURl);
+        return redisClient; // Return the Redis client instance after connection
     } catch (err) {
         console.error('Error connecting to Redis:', err);
+        throw err; // Throw the error to be caught by calling function
     }
-
-    return redisClient; // Return the client to use in other modules
 };
 
 module.exports = connectRedis;
