@@ -39,10 +39,10 @@ const loadSecrets = async () => {
     }
 })();
 
-const redisURl=process.env.REDIS_URL;
-const redisClient = redis.createClient({
 
-  url: redisURl, 
+const redisClient = redis.createClient({
+console.log(process.env.REDIS_URL);
+  url: process.env.REDIS_URL, 
 });
 
 
