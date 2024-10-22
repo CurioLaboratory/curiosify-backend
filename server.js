@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const connectToMongo = require("./db.js"); // MongoDB connection
-const connectRedis = require("./redis.js"); // Redis connection
+const connectRedis = require("./redisclient.js"); // Redis connection
 
 const app = express();
 
