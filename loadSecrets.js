@@ -31,6 +31,9 @@ const loadSecrets = async () => {
             process.env.SES_PORT = secret.SES_PORT;
             process.env.SES_USER = secret.SES_USER;
             process.env.SES_PASS = secret.SES_PASS;
+            process.env.MONGO_STR = secret.MONGO_STR;
+console.log('MONGO_STR after assignment:', process.env.MONGO_STR); // Check the value
+
 
             console.log('Secrets successfully loaded and assigned to environment variables.');
         }
