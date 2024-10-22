@@ -8,7 +8,12 @@ const app = express();
 // Load secrets before anything else
 
 const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
-loadSecrets();  // This will fetch and set your secrets into process.env
+
+(async () => {
+    await loadSecrets();  // Wait for secrets to load
+    connectToMongo();     // Connect to MongoDB after secrets are loaded
+})();
+
 
 connectToMongo();
 const corsOptions = {
