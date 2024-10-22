@@ -1,9 +1,11 @@
 const AWS = require('aws-sdk');
 const { SecretsManager } = require('aws-sdk');
-const secretsManager = new SecretsManager();
-const region = 'us-east-1'; // Change to your region if necessary
 
-AWS.config.update({ region }); // Set the region
+// Set your region
+const region = 'us-east-1'; // Change this to your desired region
+AWS.config.update({ region });
+
+const secretsManager = new SecretsManager();
 
 const loadSecrets = async () => {
     try {
