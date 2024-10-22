@@ -39,7 +39,7 @@ const loadSecrets = async () => {
         process.exit(1); // Exit the process if secrets loading fails
     }
 })();
-const redisURl=process.env.REDISS_URL;
+const redisURl=process.env.REDIS_URL;
 const redisClient = redis.createClient({
 
   url: redisURl, 
