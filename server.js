@@ -1,19 +1,26 @@
-
 const express = require("express");
 const cors = require("cors");
 const connectToMongo = require("./db.js"); // MongoDB connection
-const redisClient = require("./redisclient.js"); // Redis client
+const connectRedis = require("./redis.js"); // Redis connection
 
 const app = express();
 
-// Load secrets before anything else
 (async () => {
     try {
-      
-        await connectToMongo(); // Connect to MongoDB after secrets are loaded
+        await connectToMongo(); // Connect to MongoDB
+        const redisClient = await connectRedis(); // Connect to Redis and get client
+
+        // Redis connection setup after client is retrieved
+        redisClient.on('connect', () => {
+            console.log('Redis client connected');
+        });
+
+        redisClient.on('error', (err) => {
+            console.error('Redis error:', err);
+        });
     } catch (error) {
-        console.error("Failed to load secrets or connect to MongoDB:", error);
-        process.exit(1); // Exit the process if secrets loading fails
+        console.error("Failed to connect to MongoDB or Redis:", error);
+        process.exit(1); // Exit the process if connections fail
     }
 })();
 
@@ -32,15 +39,6 @@ app.get('/test', (req, res) => {
 });
 
 app.use("/api", require("./routes/index")); // Your routes
-
-// Redis connection setup
-redisClient.on('connect', () => {
-    console.log('Redis client connected');
-});
-
-redisClient.on('error', (err) => {
-    console.error('Redis error:', err);
-});
 
 const port = process.env.PORT || 5001;
 app.listen(port, () => {
