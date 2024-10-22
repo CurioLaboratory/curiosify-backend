@@ -70,9 +70,9 @@ exports.signup = async (req, res) => {
         const emailToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // Store user details temporarily in Redis
-        await redisClient.setEx(email, 3600, JSON.stringify({
-            role, name, email, password, rollNo, classLevel, collegeName, emailToken
-        }),{
+        await redisClient.set(email, JSON.stringify({
+    role, name, email, password, rollNo, classLevel, collegeName, emailToken
+}), {
     EX: 3600 // Expiration in seconds
 });
 
