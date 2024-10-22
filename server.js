@@ -1,26 +1,24 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-
+const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
 const connectToMongo = require("./db.js"); // MongoDB connection
 const redisClient = require("./redisclient.js"); // Redis client
+
 const app = express();
+
 // Load secrets before anything else
-
-const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
-
 (async () => {
     await loadSecrets();  // Wait for secrets to load
     connectToMongo();     // Connect to MongoDB after secrets are loaded
 })();
 
-
-connectToMongo();
 const corsOptions = {
   origin: 'https://usecuriosify.in',  // Your frontend domain
   methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allowed methods
   credentials: true,  // If you are using cookies or auth headers
 };
+
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -31,6 +29,7 @@ app.get('/test', (req, res) => {
 
 app.use("/api", require("./routes/index"));
 
+// Redis connection setup
 redisClient.on('connect', () => {
     console.log('Redis client connected');
 });
