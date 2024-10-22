@@ -14,8 +14,15 @@ const loadSecrets = async () => {
             const secret = JSON.parse(data.SecretString);
             console.log('Retrieved secret data:', secret);
 
+            // Check if MONGO_STR exists and log it
+            if (secret.MONGO_STR) {
+                console.log('MongoDB String:', secret.MONGO_STR);
+            } else {
+                console.error('MONGO_STR is undefined in the secret');
+            }
+
             // Set environment variables
-            process.env.MONGO_STR = secret.MONGO_STR.replace(/'/g, ""); // Remove single quotes if they exist
+            process.env.MONGO_STR = secret.MONGO_STR; // No need to replace quotes here, just assign directly
             process.env.JWT_SECRET = secret.JWT_SECRET;
             process.env.JWT_EXPIRES_IN = secret.JWT_EXPIRES_IN;
             process.env.FRONTEND_URL = secret.FRONTEND_URL;
