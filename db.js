@@ -13,14 +13,6 @@ const loadSecrets = async () => {
         const data = await secretsManager.getSecretValue({ SecretId: 'curiosify-backend-secrets' }).promise();
         if ('SecretString' in data) {
             const secret = JSON.parse(data.SecretString);
-            console.log('Retrieved secret data:', secret);
-
-            // Check if MONGO_STR exists and log it
-            if (secret.MONGO_STR) {
-                console.log('MongoDB String:', secret.MONGO_STR);
-            } else {
-                console.error('MONGO_STR is undefined in the secret');
-            }
 
             // Set environment variables
             process.env.MONGO_STR = secret.MONGO_STR; 
@@ -32,9 +24,6 @@ const loadSecrets = async () => {
             process.env.SES_PORT = secret.SES_PORT;
             process.env.SES_USER = secret.SES_USER;
             process.env.SES_PASS = secret.SES_PASS;
-
-            console.log('MONGO_STR after assignment:', process.env.MONGO_STR);
-            console.log('Secrets successfully loaded and assigned to environment variables.');
         }
     } catch (err) {
         console.error('Error retrieving secrets:', err);
