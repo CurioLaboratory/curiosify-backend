@@ -43,6 +43,7 @@ redisClient.on('error', (err) => {
 
 const connectRedis = async () => {
   try {
+       await loadSecrets(); // Load secrets before connecting to MongoDB
     await redisClient.connect();
     console.log('Connected to Redis');
     console.log(redisURl);
