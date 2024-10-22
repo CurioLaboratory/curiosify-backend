@@ -15,7 +15,7 @@ const loadSecrets = async () => {
             console.log('Retrieved secret data:', secret);
 
             // Set environment variables
-            process.env.MONGO_STR = secret.MONGO_STR;
+            process.env.MONGO_STR = secret.MONGO_STR.replace(/'/g, ""); // Remove single quotes if they exist
             process.env.JWT_SECRET = secret.JWT_SECRET;
             process.env.JWT_EXPIRES_IN = secret.JWT_EXPIRES_IN;
             process.env.FRONTEND_URL = secret.FRONTEND_URL;
