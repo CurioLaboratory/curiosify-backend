@@ -1,32 +1,19 @@
+
 const express = require("express");
 const cors = require("cors");
-const loadSecrets = require('./db.js');  // Your AWS Secrets Manager loader module
+const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
 const connectToMongo = require("./db.js"); // MongoDB connection
-const redisClientPromise = require("./redisclient.js"); // Redis client promise
+const redisClient = require("./redisclient.js"); // Redis client
 
 const app = express();
 
 // Load secrets before anything else
 (async () => {
     try {
-        await loadSecrets();  // Wait for secrets to load
         await connectToMongo(); // Connect to MongoDB after secrets are loaded
-
-        // Wait for the Redis client to be ready
-        const redisClient = await redisClientPromise;
-
-        // Now Redis client is available, set up listeners
-        redisClient.on('connect', () => {
-            console.log('Redis client connected');
-        });
-
-        redisClient.on('error', (err) => {
-            console.error('Redis error:', err);
-        });
-
     } catch (error) {
-        console.error("Failed to load secrets, connect to MongoDB, or Redis:", error);
-        process.exit(1); // Exit the process if initialization fails
+        console.error("Failed to load secrets or connect to MongoDB:", error);
+        process.exit(1); // Exit the process if secrets loading fails
     }
 })();
 
@@ -45,6 +32,15 @@ app.get('/test', (req, res) => {
 });
 
 app.use("/api", require("./routes/index")); // Your routes
+
+// Redis connection setup
+redisClient.on('connect', () => {
+    console.log('Redis client connected');
+});
+
+redisClient.on('error', (err) => {
+    console.error('Redis error:', err);
+});
 
 const port = process.env.PORT || 5001;
 app.listen(port, () => {
