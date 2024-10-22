@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 require('dotenv').config();
 
-const mongostr = secret.MONGO_STR; // Load MongoDB URI from environment variables
+const mongostr = process.env.MONGO_STR; // Load MongoDB URI from environment variables
 console.log('MongoDB URI:', mongostr);  // This should now log the correct URI
 
 const connectToMongo = () => {
