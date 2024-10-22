@@ -7,7 +7,7 @@ const secretsManager = new AWS.SecretsManager();
 
 async function loadSecrets() {
   try {
-    const data = await secretsManager.getSecretValue({ SecretId: 'curiosify-backend-secrets-lrW2ce' }).promise();
+    const data = await secretsManager.getSecretValue({ SecretId: 'curiosify-backend-secrets' }).promise();
     
     // Parse the secrets from SecretString
     const secrets = JSON.parse(data.SecretString);
