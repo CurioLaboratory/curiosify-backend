@@ -4,31 +4,31 @@ const AWS = require('aws-sdk');
 AWS.config.update({ region: 'us-east-1' }); // Replace with your region if different
 const secretsManager = new AWS.SecretsManager();
 
-async function loadSecrets() {
+const loadSecrets = async () => {
     try {
         const data = await secretsManager.getSecretValue({ SecretId: 'curiosify-backend-secrets' }).promise();
-        
-        // Log the retrieved secret for debugging
-        console.log("Retrieved secret data:", data);
-        
-        let secrets;
+
         if ('SecretString' in data) {
-            secrets = JSON.parse(data.SecretString);
-        } else {
-            let buff = Buffer.from(data.SecretBinary, 'base64');
-            secrets = JSON.parse(buff.toString('ascii'));
+            const secret = JSON.parse(data.SecretString);
+            console.log("Retrieved secret data:", secret);
+
+            // Set environment variables
+            process.env.MONGO_STR = secret.MONGO_STR;
+            process.env.JWT_SECRET = secret.JWT_SECRET;
+            process.env.JWT_EXPIRES_IN = secret.JWT_EXPIRES_IN;
+            process.env.FRONTEND_URL = secret.FRONTEND_URL;
+            process.env.REDIS_URL = secret.REDIS_URL;
+            process.env.SES_HOST = secret.SES_HOST;
+            process.env.SES_PORT = secret.SES_PORT;
+            process.env.SES_USER = secret.SES_USER;
+            process.env.SES_PASS = secret.SES_PASS;
+
+            console.log("Secrets successfully loaded and assigned to environment variables.");
         }
-
-        // Assign secrets to environment variables
-        Object.keys(secrets).forEach((key) => {
-            process.env[key] = secrets[key];
-        });
-
-        console.log("Secrets successfully loaded and assigned to environment variables.");
-    } catch (err) {
-        console.error("Error retrieving secrets:", err);
-        throw err; // Rethrow the error for proper handling
+    } catch (error) {
+        console.error("Error retrieving secrets:", error);
+        throw error; // Rethrow the error for further handling
     }
-}
+};
 
 module.exports = loadSecrets;
