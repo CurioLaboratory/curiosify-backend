@@ -3,10 +3,12 @@ const AWS = require('aws-sdk');
 const { SecretsManager } = require('aws-sdk');
 
 // Set your region
-const region = 'us-east-1'; // Set your region accordingly
+const region = 'us-east-1'; 
 AWS.config.update({ region });
 
 const secretsManager = new SecretsManager();
+
+let redisClient; // Declare redisClient here
 
 // Load secrets from AWS Secrets Manager
 const loadSecrets = async () => {
@@ -20,7 +22,7 @@ const loadSecrets = async () => {
             process.env.JWT_SECRET = secret.JWT_SECRET;
             process.env.JWT_EXPIRES_IN = secret.JWT_EXPIRES_IN;
             process.env.FRONTEND_URL = secret.FRONTEND_URL;
-            process.env.REDIS_URL = secret.REDIS_URL;  // This needs to be set before creating the Redis client
+            process.env.REDIS_URL = secret.REDIS_URL;  // Set the REDIS_URL here
             process.env.SES_HOST = secret.SES_HOST;
             process.env.SES_PORT = secret.SES_PORT;
             process.env.SES_USER = secret.SES_USER;
@@ -31,27 +33,28 @@ const loadSecrets = async () => {
     }
 };
 
-(async () => {
+// Initialize Redis client
+const connectRedis = async () => {
     try {
         await loadSecrets(); // Load secrets before connecting to Redis
 
         const redisURl = process.env.REDIS_URL; // Retrieve the Redis URL after secrets are loaded
-        const redisClient = redis.createClient({
+        redisClient = redis.createClient({
             url: redisURl,  // Now this should be defined
         });
 
-        redisClient.on('error', (err) => {
-            console.error('Redis error:', err);
-        });
-
-        await redisClient.connect();  // Await the connection to Redis
+        // Connect the Redis client
+        await redisClient.connect();
         console.log('Connected to Redis');
         console.log(redisURl);
-
-        module.exports = redisClient;  // Export the redisClient after successful connection
-
     } catch (err) {
         console.error('Error connecting to Redis:', err);
         process.exit(1); // Exit process if Redis connection fails
     }
-})();
+};
+
+// Connect to Redis on startup
+connectRedis();
+
+// Export the Redis client (after it has connected)
+module.exports = redisClient;
