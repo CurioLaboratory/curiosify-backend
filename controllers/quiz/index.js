@@ -120,7 +120,7 @@ exports.createAIquiz = async (req, res) => {
          
          // Save the notification
          await notification.save();
-         res.status(201).json({ message: 'Quiz question added successfully and students notified!',addedQuiz: addedquiz});
+         res.status(201).json({ message: 'Quiz question added successfully and students notified!',addedQuiz:addedQuiz});
         
     } catch (error) {
         console.error("Error saving quiz:", error); // Log the error for debugging
