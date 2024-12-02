@@ -15,5 +15,7 @@ router
 router
   .route("/createAIquiz")
   .post(middleware.fetchuser, quizControllers.createAIquiz);
-router.route("/genrateQuizUsingAI").post(quizControllers.genrateAIquize);
+router.route("/genrateQuizUpload").post(quizControllers.genrateAIquize);
+router.route("/genrateQuizText").post(quizControllers.genrateQuizBasedonTopic);
+
 module.exports = router;

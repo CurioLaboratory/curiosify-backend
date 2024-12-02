@@ -204,7 +204,7 @@ exports.genrateAIquize = async (req, res) => {
     const pdfText = parsedPdf.text;
     let pagesText = pdfText;
     if (startPage && endPage) {
-      const pages = pdfText.split("\n"); 
+      const pages = pdfText.split("\n");
       pagesText = pages.slice(startPage - 1, endPage).join("\n");
     }
     const prompt = `
@@ -215,7 +215,7 @@ exports.genrateAIquize = async (req, res) => {
     `;
 
     const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API, 
+      apiKey: process.env.OPENAI_API,
     });
 
     const aiResponse = await openai.chat.completions.create({
@@ -232,17 +232,81 @@ exports.genrateAIquize = async (req, res) => {
     let generatedQuestions = aiResponse.choices[0].message.content.trim();
     console.log("question", generatedQuestions);
     const parsedQuestions = generatedQuestions
-      .split(/\n{2,}/) 
+      .split(/\n{2,}/)
       .map((questionBlock) => {
-        const lines = questionBlock.split("\n"); 
-        const questionText = lines[0].trim(); 
+        const lines = questionBlock.split("\n");
+        const questionText = lines[0].trim();
         const options = lines.slice(1).map((option) => option.trim());
         return {
           question: questionText,
           options: options,
         };
       });
-   // console.log("Formatted Questions:", parsedQuestions);
+    // console.log("Formatted Questions:", parsedQuestions);
+    res.status(201).json({
+      message: "Quiz generated successfully!",
+      generatedQuestions: parsedQuestions,
+    });
+  } catch (error) {
+    console.error("Error generating quiz:", error);
+    res.status(500).json({
+      message: "Error generating quiz questions or sending notifications",
+      error: error.message,
+    });
+  }
+};
+
+exports.genrateQuizBasedonTopic = async (req, res) => {
+  const {
+    language,
+    title,
+    subject,
+    topic,
+    questionType,
+    level,
+    numberOfQuestions,
+  } = req.body;
+
+  if (!title || !questionType || !numberOfQuestions || !topic || !title) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+  if (level == null || !level) {
+    level = "easy";
+  }
+  try {
+    const prompt = `
+      You are a quiz generator. Based on the following title ${title} topic or link ${topic} and subject${subject}, generate ${numberOfQuestions} ${questionType} questions in language ${language} for a quiz at the ${level} level.
+    `;
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API,
+    });
+
+    const aiResponse = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant that generates quiz questions.",
+        },
+        { role: "user", content: prompt },
+      ],
+      model: "gpt-4",
+    });
+
+    let generatedQuestions = aiResponse.choices[0].message.content.trim();
+    console.log("question", generatedQuestions);
+    const parsedQuestions = generatedQuestions
+      .split(/\n{2,}/)
+      .map((questionBlock) => {
+        const lines = questionBlock.split("\n");
+        const questionText = lines[0].trim();
+        const options = lines.slice(1).map((option) => option.trim());
+        return {
+          question: questionText,
+          options: options,
+        };
+      });
+    // console.log("Formatted Questions:", parsedQuestions);
     res.status(201).json({
       message: "Quiz generated successfully!",
       generatedQuestions: parsedQuestions,
