@@ -1,7 +1,7 @@
 
 const express = require("express");
 const cors = require("cors");
-const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
+//const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
 const connectToMongo = require("./db.js"); // MongoDB connection
 const redisClient = require("./redisclient.js"); // Redis client
 
