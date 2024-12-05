@@ -251,6 +251,75 @@ exports.genrateAIquize = async (req, res) => {
   }
 };
 
+exports.genrateAIquize = async (req, res) => {
+  const { title, questionType, numberOfQuestions, level, startPage, endPage } =
+    req.body;
+  // console.log("body", req);
+  if (!title || !questionType || !numberOfQuestions || !level) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  try {
+    // console.log("apikey", process.env.OPENAI_API);
+    const pdfPath = req.file;
+    const pdfData = fs.readFileSync(pdfPath);
+    const parsedPdf = await pdf(pdfData);
+    const pdfText = parsedPdf.text;
+    let pagesText = pdfText;
+
+    if (startPage && endPage) {
+      const pages = pdfText.split("\n");
+      pagesText = pages.slice(startPage - 1, endPage).join("\n");
+    }
+    const prompt = `
+      You are a quiz generator. Based on the following text, generate ${numberOfQuestions} ${questionType} questions for a quiz at the ${level} level.
+
+      Text:
+      ${pagesText}
+    `;
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API,
+    });
+
+    const aiResponse = await openai.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant that generates quiz questions.",
+        },
+        { role: "user", content: prompt },
+      ],
+      model: "gpt-4",
+    });
+
+    let generatedQuestions = aiResponse.choices[0].message.content.trim();
+    console.log("question", generatedQuestions);
+    const parsedQuestions = generatedQuestions
+      .split(/\n{2,}/)
+      .map((questionBlock) => {
+        const lines = questionBlock.split("\n");
+        const questionText = lines[0].trim();
+        const options = lines.slice(1).map((option) => option.trim());
+        return {
+          question: questionText,
+          options: options,
+        };
+      });
+    // console.log("Formatted Questions:", parsedQuestions);
+    res.status(201).json({
+      message: "Quiz generated successfully!",
+      generatedQuestions: parsedQuestions,
+    });
+  } catch (error) {
+    console.error("Error generating quiz:", error);
+    res.status(500).json({
+      message: "Error generating quiz questions or sending notifications",
+      error: error.message,
+    });
+  }
+};
+
 exports.generateQuizBasedOnTopic = async (req, res) => {
   const {
     language,
@@ -266,7 +335,7 @@ exports.generateQuizBasedOnTopic = async (req, res) => {
     return res.status(400).json({ error: "All fields are required" });
   }
 
-  let quizLevel = level || "easy";
+  const quizLevel = level || "easy";
 
   try {
     const prompt = `
@@ -277,17 +346,32 @@ exports.generateQuizBasedOnTopic = async (req, res) => {
       - Language: ${language}
       - Difficulty Level: ${quizLevel}
       - Question Type: ${questionType} (${
-      questionType === "MCQ"
+      questionType === "Multiple Single choice"
         ? "with 4 options and correct answer"
-        : "without options"
+        : "subjective with a detailed answer"
     })
 
-      For each question, provide:
-      1. The question text
-      ${questionType === "Multiple Single choice" ? "2. Four answer options" : ""}
-      3. The correct answer
-      
-      Ensure the questions are relevant and precise.
+      Response format for ${
+        questionType === "Multiple Single choice"
+          ? "multiple-choice"
+          : "subjective"
+      } questions:
+      ${
+        questionType === "Multiple Single choice"
+          ? `
+      Question 1:Question text
+      a) Option 1
+      b) Option 2
+      c) Option 3
+      d) Option 4
+      Correct Answer: [correct option]`
+          : `
+      Question 1: Question text
+      Answer: [detailed answer]
+      `
+      }
+
+      Ensure the response strictly follows the format provided and includes questions and answers relevant to the topic.
     `;
 
     const openai = new OpenAI({
@@ -309,26 +393,44 @@ exports.generateQuizBasedOnTopic = async (req, res) => {
     const generatedContent = aiResponse.choices[0].message.content.trim();
     console.log("Generated Questions and Answers:", generatedContent);
 
-    // Parse the AI response into structured quiz format
+    // Parse AI response into structured format
     const parsedQuestions = generatedContent
-      .split(/\n{2,}/)
+      .split(/Question \d+:/)
+      .filter((block) => block.trim()) // Remove empty blocks
       .map((questionBlock) => {
-        const lines = questionBlock.split("\n");
-        const questionText = lines[0].trim();
+        const lines = questionBlock.split("\n").map((line) => line.trim());
 
         if (questionType === "Multiple Single choice") {
-          const options = lines.slice(1, 5).map((option) => option.trim());
-          const correctAnswer = lines[5]?.replace("Correct Answer:", "").trim();
+          // Handle multiple-choice questions
+          const questionText = lines[0].replace(/^1\.\s*/, ""); // Remove "1." prefix from the question text
+
+          const options = lines
+            .slice(1, 5) // Options are on lines 2-5
+            .map((line) => line.replace(/^[a-d]\)\s*/, "").trim()); // Remove "a) ", "b) ", etc.
+
+          const correctAnswerLine = lines.find((line) =>
+            line.startsWith("Correct Answer:")
+          );
+          const correctAnswer = correctAnswerLine
+            ? correctAnswerLine.replace("Correct Answer:", "").trim()
+            : "";
+
           return {
             question: questionText,
             options: options,
             correctAnswer: correctAnswer,
           };
         } else {
-          const correctAnswer = lines[1]?.replace("Correct Answer:", "").trim();
+          // Handle subjective questions
+          const questionText = lines[0].trim(); // First line is the question text
+          const answerLine = lines.find((line) => line.startsWith("Answer:"));
+          const answer = answerLine
+            ? answerLine.replace("Answer:", "").trim()
+            : "";
+
           return {
             question: questionText,
-            correctAnswer: correctAnswer,
+            answer: answer,
           };
         }
       });
