@@ -3,21 +3,21 @@ const UserActivity = require('../../models/userActivityFeed/UserActivityFeed')
 
 // Add a new activity for the user
 exports.addActivity = async (req, res) => {
-    const { userId, email, type, title } = req.body;
+    const { userId, email, type, title ,activeId } = req.body;
 
     try {
         let userActivity = await UserActivity.findOne({ user: userId });
 
         if (userActivity) {
             // Add new activity to the user's activity array
-            userActivity.activities.push({ type, title });
+            userActivity.activities.push({ type, title,activeId });
             await userActivity.save();
         } else {
             // Create a new activity document for the user
             userActivity = new UserActivity({
                 user: userId,
                 email,
-                activities: [{ type, title }]
+                activities: [{ type, title , activeId }]
             });
             await userActivity.save();
         }
