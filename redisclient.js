@@ -51,7 +51,7 @@ redisClient.on('error', (err) => {
 
 const connectRedis = async () => {
   try {
-    await loadSecrets();
+    //await loadSecrets();
       console.log(process.env.REDIS_URL);
     await redisClient.connect();
     console.log('Connected to Redis');
