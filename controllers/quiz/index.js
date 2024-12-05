@@ -183,26 +183,21 @@ exports.createAIquiz = async (req, res) => {
 // genrate quiz using AI
 
 exports.genrateAIquize = async (req, res) => {
-  const {
-    title,
-    questionType,
-    numberOfQuestions,
-    level,
-    startPage,
-    endPage,
-    pdfPath,
-  } = req.body;
-
-  if (!title || !questionType || !numberOfQuestions || !level || !pdfPath) {
+  const { title, questionType, numberOfQuestions, level, startPage, endPage } =
+    req.body;
+  // console.log("body", req);
+  if (!title || !questionType || !numberOfQuestions || !level) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    console.log("apikey", process.env.OPENAI_API);
+    // console.log("apikey", process.env.OPENAI_API);
+    const pdfPath = req.file;
     const pdfData = fs.readFileSync(pdfPath);
     const parsedPdf = await pdf(pdfData);
     const pdfText = parsedPdf.text;
     let pagesText = pdfText;
+
     if (startPage && endPage) {
       const pages = pdfText.split("\n");
       pagesText = pages.slice(startPage - 1, endPage).join("\n");
@@ -256,7 +251,7 @@ exports.genrateAIquize = async (req, res) => {
   }
 };
 
-exports.genrateQuizBasedonTopic = async (req, res) => {
+exports.generateQuizBasedOnTopic = async (req, res) => {
   const {
     language,
     title,
@@ -267,15 +262,32 @@ exports.genrateQuizBasedonTopic = async (req, res) => {
     numberOfQuestions,
   } = req.body;
 
-  if (!title || !questionType || !numberOfQuestions || !topic || !title) {
+  if (!title || !questionType || !numberOfQuestions || !topic || !language) {
     return res.status(400).json({ error: "All fields are required" });
   }
-  if (level == null || !level) {
-    level = "easy";
-  }
+
+  let quizLevel = level || "easy";
+
   try {
     const prompt = `
-      You are a quiz generator. Based on the following title ${title} topic or link ${topic} and subject${subject}, generate ${numberOfQuestions} ${questionType} questions in language ${language} for a quiz at the ${level} level.
+      You are a quiz generator. Generate ${numberOfQuestions} questions strictly based on the following parameters:
+      - Title: ${title}
+      - Topic: ${topic}
+      - Subject: ${subject}
+      - Language: ${language}
+      - Difficulty Level: ${quizLevel}
+      - Question Type: ${questionType} (${
+      questionType === "MCQ"
+        ? "with 4 options and correct answer"
+        : "without options"
+    })
+
+      For each question, provide:
+      1. The question text
+      ${questionType === "Multiple Single choice" ? "2. Four answer options" : ""}
+      3. The correct answer
+      
+      Ensure the questions are relevant and precise.
     `;
 
     const openai = new OpenAI({
@@ -286,27 +298,41 @@ exports.genrateQuizBasedonTopic = async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant that generates quiz questions.",
+          content:
+            "You are a helpful assistant that generates quiz questions with answers.",
         },
         { role: "user", content: prompt },
       ],
       model: "gpt-4",
     });
 
-    let generatedQuestions = aiResponse.choices[0].message.content.trim();
-    console.log("question", generatedQuestions);
-    const parsedQuestions = generatedQuestions
+    const generatedContent = aiResponse.choices[0].message.content.trim();
+    console.log("Generated Questions and Answers:", generatedContent);
+
+    // Parse the AI response into structured quiz format
+    const parsedQuestions = generatedContent
       .split(/\n{2,}/)
       .map((questionBlock) => {
         const lines = questionBlock.split("\n");
         const questionText = lines[0].trim();
-        const options = lines.slice(1).map((option) => option.trim());
-        return {
-          question: questionText,
-          options: options,
-        };
+
+        if (questionType === "Multiple Single choice") {
+          const options = lines.slice(1, 5).map((option) => option.trim());
+          const correctAnswer = lines[5]?.replace("Correct Answer:", "").trim();
+          return {
+            question: questionText,
+            options: options,
+            correctAnswer: correctAnswer,
+          };
+        } else {
+          const correctAnswer = lines[1]?.replace("Correct Answer:", "").trim();
+          return {
+            question: questionText,
+            correctAnswer: correctAnswer,
+          };
+        }
       });
-    // console.log("Formatted Questions:", parsedQuestions);
+
     res.status(201).json({
       message: "Quiz generated successfully!",
       generatedQuestions: parsedQuestions,
@@ -314,7 +340,7 @@ exports.genrateQuizBasedonTopic = async (req, res) => {
   } catch (error) {
     console.error("Error generating quiz:", error);
     res.status(500).json({
-      message: "Error generating quiz questions or sending notifications",
+      message: "Error generating quiz questions",
       error: error.message,
     });
   }
