@@ -10,6 +10,9 @@ const app = express();
 //const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
 //loadSecrets();  // This will fetch and set your secrets into process.env
 
+
+
+
 connectToMongo();
 const corsOptions = {
   origin: 'https://usecuriosify.in',  // Your frontend domain
