@@ -1,7 +1,6 @@
-
 const express = require("express");
 const cors = require("cors");
-const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
+const loadSecrets = require('./loadSecrets.js'); // Your AWS Secrets Manager loader module
 const connectToMongo = require("./db.js"); // MongoDB connection
 const redisClient = require("./redisclient.js"); // Redis client
 
@@ -17,20 +16,18 @@ const app = express();
     }
 })();
 
-const corsOptions = {
-    origin: 'https://usecuriosify.in',  // Your frontend domain
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allowed methods
-    credentials: true,  // If you are using cookies or auth headers
-};
+// Allow all origins (CORS setup for debugging)
+app.use(cors({ origin: true, credentials: true }));
 
-app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
+// Test route
 app.get('/test', (req, res) => {
     res.send("Test API success");
 });
 
+// Routes
 app.use("/api", require("./routes/index")); // Your routes
 
 // Redis connection setup
@@ -42,6 +39,7 @@ redisClient.on('error', (err) => {
     console.error('Redis error:', err);
 });
 
+// Start the server
 const port = process.env.PORT || 5001;
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}/`);

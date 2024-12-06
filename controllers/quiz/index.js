@@ -222,7 +222,7 @@ exports.genrateAIquize = async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant that generates quiz questions.",
+          content: "You are a helpful assistant that generates quiz questions. and dont write anything just write question and option and answer",
         },
         { role: "user", content: prompt },
       ],
@@ -245,7 +245,7 @@ exports.genrateAIquize = async (req, res) => {
     // console.log("Formatted Questions:", parsedQuestions);
     res.status(201).json({
       message: "Quiz generated successfully!",
-      generatedQuestions: parsedQuestions,
+      generatedQuestions: generatedQuestions,
     });
   } catch (error) {
     console.error("Error generating quiz:", error);
