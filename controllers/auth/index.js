@@ -1,11 +1,48 @@
-require("dotenv").config();
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const User = require("../../models/auth/User");
 const redisClient =require("../../redisclient")
+const AWS = require('aws-sdk');
+const { SecretsManager } = require('aws-sdk');
+
+// Set your region
+const region = 'us-east-1'; // Change this to your desired region
+AWS.config.update({ region });
+
+const secretsManager = new SecretsManager();
+
+const loadSecrets = async () => {
+    try {
+        const data = await secretsManager.getSecretValue({ SecretId: 'curiosify-backend-secrets' }).promise();
+        if ('SecretString' in data) {
+            const secret = JSON.parse(data.SecretString);
+            // Set environment variables
+            process.env.MONGO_STR = secret.MONGO_STR; 
+            process.env.JWT_SECRET = secret.JWT_SECRET;
+            process.env.JWT_EXPIRES_IN = secret.JWT_EXPIRES_IN;
+            process.env.FRONTEND_URL = secret.FRONTEND_URL;
+            process.env.REDIS_URL = secret.REDIS_URL;
+            process.env.SES_HOST = secret.SES_HOST;
+            process.env.SES_PORT = secret.SES_PORT;
+            process.env.SES_USER = secret.SES_USER;
+            process.env.SES_PASS = secret.SES_PASS;
+        
+        }
+    } catch (err) {
+        console.error('Error retrieving secrets:', err);
+    }
+};
+
+
+
 exports.signup = async (req, res) => {
     try {
+<<<<<<< HEAD
+        const { name, email, password, role, collegeName } = req.body;
+=======
+         await loadSecrets();
         const { name, email, password, role, collegeName } = req.body;
 
         // Restricted domains (update this list with the domains you want to restrict)
@@ -22,6 +59,7 @@ exports.signup = async (req, res) => {
             });
         }
 
+>>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
@@ -40,7 +78,11 @@ exports.signup = async (req, res) => {
             role, name, email, password, rollNo, classLevel, collegeName, emailToken
         }));
 
+<<<<<<< HEAD
+        // Configure nodemailer to use Amazon SES with STARTTLS on port 587
+=======
         // If the email domain is not restricted, proceed to send the verification email
+>>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
         const transporter = nodemailer.createTransport({
             host: process.env.SES_HOST,
             port: process.env.SES_PORT,
@@ -48,9 +90,15 @@ exports.signup = async (req, res) => {
                 user: process.env.SES_USER,
                 pass: process.env.SES_PASS,
             },
+<<<<<<< HEAD
+            secure: false,  // false for STARTTLS (port 587)
+            tls: {
+                rejectUnauthorized: false,  // Optional: Disable certificate verification (useful in development)
+=======
             secure: true, // Use true for SSL (port 465)
             tls: {
                 rejectUnauthorized: false, // Optional: disable certificate validation (useful for development)
+>>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
             },
         });
 
@@ -63,10 +111,15 @@ exports.signup = async (req, res) => {
             subject: 'Verify your email',
             html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email address.</p>`,
         };
+<<<<<<< HEAD
 
         // Send email
         await transporter.sendMail(mailOptions);
 
+=======
+        // Send email
+        await transporter.sendMail(mailOptions);
+>>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
         return res.status(200).json({
             success: true,
             message: "Registration successful! Please check your email to verify your account.",
@@ -81,6 +134,8 @@ exports.signup = async (req, res) => {
         });
     }
 };
+
+
 
 exports.login = async (req, res) => {
     try {
