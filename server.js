@@ -20,7 +20,7 @@ const upload = multer({ dest: "uploads/" });
 
 const corsOptions = {
   //   origin: "https://usecuriosify.in" || "http://localhost:3000", // Your frontend domain
-  origin: "*",
+  origin: "http://localhost:3000",
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed methods
   credentials: true, // If you are using cookies or auth headers
 };

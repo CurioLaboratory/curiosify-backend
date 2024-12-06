@@ -181,20 +181,18 @@ exports.createAIquiz = async (req, res) => {
 };
 
 // genrate quiz using AI
-
 exports.genrateAIquize = async (req, res) => {
   const { title, questionType, numberOfQuestions, level, startPage, endPage } =
     req.body;
-  // console.log("body", req);
+  console.log("body", req.body);
   if (!title || !questionType || !numberOfQuestions || !level) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
     // console.log("apikey", process.env.OPENAI_API);
-    const pdfPath = req.file;
-    const pdfData = fs.readFileSync(pdfPath);
-    const parsedPdf = await pdf(pdfData);
+    const pdfBuffer = req.file.buffer;
+    const parsedPdf = await pdf(pdfBuffer);
     const pdfText = parsedPdf.text;
     let pagesText = pdfText;
 
@@ -202,82 +200,40 @@ exports.genrateAIquize = async (req, res) => {
       const pages = pdfText.split("\n");
       pagesText = pages.slice(startPage - 1, endPage).join("\n");
     }
+    const quizLevel = level || "easy";
     const prompt = `
-      You are a quiz generator. Based on the following text, generate ${numberOfQuestions} ${questionType} questions for a quiz at the ${level} level.
+    You are a quiz generator. Generate ${numberOfQuestions} questions strictly based on the following parameters:
+    - Title: ${title}
+    - Text: ${pagesText}
+    - Difficulty Level: ${quizLevel}
+    - Question Type: ${questionType} (${
+    questionType === "Multiple Single choice"
+      ? "with 4 options and correct answer"
+      : "subjective with a detailed answer"
+  })
 
-      Text:
-      ${pagesText}
-    `;
-
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API,
-    });
-
-    const aiResponse = await openai.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful assistant that generates quiz questions.",
-        },
-        { role: "user", content: prompt },
-      ],
-      model: "gpt-4",
-    });
-
-    let generatedQuestions = aiResponse.choices[0].message.content.trim();
-    console.log("question", generatedQuestions);
-    const parsedQuestions = generatedQuestions
-      .split(/\n{2,}/)
-      .map((questionBlock) => {
-        const lines = questionBlock.split("\n");
-        const questionText = lines[0].trim();
-        const options = lines.slice(1).map((option) => option.trim());
-        return {
-          question: questionText,
-          options: options,
-        };
-      });
-    // console.log("Formatted Questions:", parsedQuestions);
-    res.status(201).json({
-      message: "Quiz generated successfully!",
-      generatedQuestions: parsedQuestions,
-    });
-  } catch (error) {
-    console.error("Error generating quiz:", error);
-    res.status(500).json({
-      message: "Error generating quiz questions or sending notifications",
-      error: error.message,
-    });
-  }
-};
-
-exports.genrateAIquize = async (req, res) => {
-  const { title, questionType, numberOfQuestions, level, startPage, endPage } =
-    req.body;
-  // console.log("body", req);
-  if (!title || !questionType || !numberOfQuestions || !level) {
-    return res.status(400).json({ error: "All fields are required" });
-  }
-
-  try {
-    // console.log("apikey", process.env.OPENAI_API);
-    const pdfPath = req.file;
-    const pdfData = fs.readFileSync(pdfPath);
-    const parsedPdf = await pdf(pdfData);
-    const pdfText = parsedPdf.text;
-    let pagesText = pdfText;
-
-    if (startPage && endPage) {
-      const pages = pdfText.split("\n");
-      pagesText = pages.slice(startPage - 1, endPage).join("\n");
+    Response format for ${
+      questionType === "Multiple Single choice"
+        ? "multiple-choice"
+        : "subjective"
+    } questions:
+    ${
+      questionType === "Multiple Single choice"
+        ? `
+    Question 1:Question text
+    a) Option 1
+    b) Option 2
+    c) Option 3
+    d) Option 4
+    Correct Answer: [correct option]`
+        : `
+    Question 1: Question text
+    Answer: [detailed answer]
+    `
     }
-    const prompt = `
-      You are a quiz generator. Based on the following text, generate ${numberOfQuestions} ${questionType} questions for a quiz at the ${level} level.
 
-      Text:
-      ${pagesText}
-    `;
-
+    Ensure the response strictly follows the format provided and includes questions and answers relevant to the topic.
+  `;
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API,
     });
