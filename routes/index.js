@@ -15,5 +15,7 @@ router.use("/useractivityFeed", require("./userActivityFeed/index"));
 router.use("/quizperformance", require("./quizperformance/index"));
 router.use("/userChatHistory", require("./userChatHistory/index"));
 router.use("/createCourse",require('./createCourse/index'));
+router.use("/student_attendance",require('./student_attendance/index'));
+router.use("/gradesheet",require('./gradeSheet/index'));
 
 module.exports = router;

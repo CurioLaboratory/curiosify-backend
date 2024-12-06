@@ -1,12 +1,65 @@
-require("dotenv").config();
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const User = require("../../models/auth/User");
 const redisClient =require("../../redisclient")
+const AWS = require('aws-sdk');
+const { SecretsManager } = require('aws-sdk');
+
+// Set your region
+const region = 'us-east-1'; // Change this to your desired region
+AWS.config.update({ region });
+
+const secretsManager = new SecretsManager();
+
+const loadSecrets = async () => {
+    try {
+        const data = await secretsManager.getSecretValue({ SecretId: 'curiosify-backend-secrets' }).promise();
+        if ('SecretString' in data) {
+            const secret = JSON.parse(data.SecretString);
+            // Set environment variables
+            process.env.MONGO_STR = secret.MONGO_STR; 
+            process.env.JWT_SECRET = secret.JWT_SECRET;
+            process.env.JWT_EXPIRES_IN = secret.JWT_EXPIRES_IN;
+            process.env.FRONTEND_URL = secret.FRONTEND_URL;
+            process.env.REDIS_URL = secret.REDIS_URL;
+            process.env.SES_HOST = secret.SES_HOST;
+            process.env.SES_PORT = secret.SES_PORT;
+            process.env.SES_USER = secret.SES_USER;
+            process.env.SES_PASS = secret.SES_PASS;
+        
+        }
+    } catch (err) {
+        console.error('Error retrieving secrets:', err);
+    }
+};
+
+
+
 exports.signup = async (req, res) => {
     try {
+<<<<<<< HEAD
         const { name, email, password, role, collegeName } = req.body;
+=======
+         await loadSecrets();
+        const { name, email, password, role, collegeName } = req.body;
+
+        // Restricted domains (update this list with the domains you want to restrict)
+        const restrictedDomains = ['gmx.fr']; // Add any domains you want to restrict
+
+        // Extract the domain from the email
+        const emailDomain = email.split('@')[1];
+
+        // Check if the email domain is restricted
+        if (restrictedDomains.includes(emailDomain)) {
+            return res.status(400).json({
+                success: false,
+                message: `Email registration from ${emailDomain} is not allowed.`,
+            });
+        }
+
+>>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
@@ -25,7 +78,11 @@ exports.signup = async (req, res) => {
             role, name, email, password, rollNo, classLevel, collegeName, emailToken
         }));
 
+<<<<<<< HEAD
         // Configure nodemailer to use Amazon SES with STARTTLS on port 587
+=======
+        // If the email domain is not restricted, proceed to send the verification email
+>>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
         const transporter = nodemailer.createTransport({
             host: process.env.SES_HOST,
             port: process.env.SES_PORT,
@@ -33,9 +90,15 @@ exports.signup = async (req, res) => {
                 user: process.env.SES_USER,
                 pass: process.env.SES_PASS,
             },
+<<<<<<< HEAD
             secure: false,  // false for STARTTLS (port 587)
             tls: {
                 rejectUnauthorized: false,  // Optional: Disable certificate verification (useful in development)
+=======
+            secure: true, // Use true for SSL (port 465)
+            tls: {
+                rejectUnauthorized: false, // Optional: disable certificate validation (useful for development)
+>>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
             },
         });
 
@@ -48,10 +111,15 @@ exports.signup = async (req, res) => {
             subject: 'Verify your email',
             html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email address.</p>`,
         };
+<<<<<<< HEAD
 
         // Send email
         await transporter.sendMail(mailOptions);
 
+=======
+        // Send email
+        await transporter.sendMail(mailOptions);
+>>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
         return res.status(200).json({
             success: true,
             message: "Registration successful! Please check your email to verify your account.",
@@ -66,6 +134,8 @@ exports.signup = async (req, res) => {
         });
     }
 };
+
+
 
 exports.login = async (req, res) => {
     try {
@@ -211,3 +281,75 @@ exports.verifyEmail = async (req, res) => {
         });
     }
 };
+
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        console.log(req.body)
+        const userId = req.user.id; // Assumes user is authenticated
+
+        const user = await User.findById(userId).select("hashedPwd salt");
+
+        // Verify the old password
+        const isMatch = await bcrypt.compare(currentPassword, user.hashedPwd);
+        if (!isMatch) {
+            return res.json({ success: false, message: "Incorrect old password." });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update the user with the new password
+        user.hashedPwd = hashedNewPassword;
+        user.salt = salt;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Password changed successfully!"
+        });
+    } catch (error) {
+        console.error("Error during password change:", error);
+        res.status(500).json({ success: false, message: "Password change failed." });
+    }
+};
+exports.verifyPassword = async (req, res) => {
+    try {
+      const { password } = req.body;
+      const userId = req.user.id;
+    //   console.log(userId)
+      // Find the user by their ID
+      const user = await User.findById(userId).select("hashedPwd salt");
+  
+      // Verify the password
+      const isMatch = await bcrypt.compare(password, user.hashedPwd);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: "Incorrect password." });
+      }
+  
+      res.status(200).json({ success: true, message: "Password verified." });
+    } catch (error) {
+      console.error("Error verifying password:", error);
+      res.status(500).json({ success: false, message: "Password verification failed." });
+    }
+  };
+  exports.deleteAccount = async (req, res) => {
+    try {
+      const userId = req.user.id;
+  console.log(userId)
+      // Delete the user from the database
+      const deletedUser = await User.findByIdAndDelete(userId);
+  
+      if (!deletedUser) {
+        return res.status(404).json({ success: false, message: "User not found." });
+      }
+  
+      res.status(200).json({ success: true, message: "Account deleted successfully." });
+    } catch (error) {
+      console.error("Error during account deletion:", error);
+      res.status(500).json({ success: false, message: "Account deletion failed." });
+    }
+  };
+    
