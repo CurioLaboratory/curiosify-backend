@@ -10,4 +10,5 @@ router.route("/getuserdetails").get(middleware.fetchuser, userControllers.getuse
 router.route("/verify-email").post(userControllers.verifyEmail);
 router.route("/verifyPassword").post(middleware.fetchuser,userControllers.verifyPassword);
 router.route("/deleteAccount").delete(middleware.fetchuser,userControllers.deleteAccount);
+router.route("/changePassword").post(middleware.fetchuser,userControllers.changePassword);
 module.exports = router;

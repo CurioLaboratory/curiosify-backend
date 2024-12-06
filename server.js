@@ -7,8 +7,7 @@ const redisClient = require("./redisclient.js"); // Redis client
 const app = express();
 // Load secrets before anything else
 
-const loadSecrets = require('./loadSecrets.js');  // Your AWS Secrets Manager loader module
-loadSecrets();  // This will fetch and set your secrets into process.env
+
 
 connectToMongo();
 const corsOptions = {
@@ -16,7 +15,7 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allowed methods
   credentials: true,  // If you are using cookies or auth headers
 };
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 

@@ -3,7 +3,7 @@ const redis = require('redis');
 const redisURl=process.env.REDISS_URL;
 const redisClient = redis.createClient({
 
-  url: redisURl, 
+ 
 });
 
 
