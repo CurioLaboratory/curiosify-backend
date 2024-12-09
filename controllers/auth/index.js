@@ -39,9 +39,6 @@ const loadSecrets = async () => {
 
 exports.signup = async (req, res) => {
     try {
-<<<<<<< HEAD
-        const { name, email, password, role, collegeName } = req.body;
-=======
          await loadSecrets();
         const { name, email, password, role, collegeName } = req.body;
 
@@ -59,7 +56,6 @@ exports.signup = async (req, res) => {
             });
         }
 
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
         const existingUser = await User.findOne({ email });
 
         if (existingUser) {
@@ -78,11 +74,7 @@ exports.signup = async (req, res) => {
             role, name, email, password, rollNo, classLevel, collegeName, emailToken
         }));
 
-<<<<<<< HEAD
-        // Configure nodemailer to use Amazon SES with STARTTLS on port 587
-=======
         // If the email domain is not restricted, proceed to send the verification email
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
         const transporter = nodemailer.createTransport({
             host: process.env.SES_HOST,
             port: process.env.SES_PORT,
@@ -90,15 +82,9 @@ exports.signup = async (req, res) => {
                 user: process.env.SES_USER,
                 pass: process.env.SES_PASS,
             },
-<<<<<<< HEAD
-            secure: false,  // false for STARTTLS (port 587)
-            tls: {
-                rejectUnauthorized: false,  // Optional: Disable certificate verification (useful in development)
-=======
             secure: true, // Use true for SSL (port 465)
             tls: {
                 rejectUnauthorized: false, // Optional: disable certificate validation (useful for development)
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
             },
         });
 
@@ -111,15 +97,8 @@ exports.signup = async (req, res) => {
             subject: 'Verify your email',
             html: `<p>Click <a href="${verificationUrl}">here</a> to verify your email address.</p>`,
         };
-<<<<<<< HEAD
-
         // Send email
         await transporter.sendMail(mailOptions);
-
-=======
-        // Send email
-        await transporter.sendMail(mailOptions);
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
         return res.status(200).json({
             success: true,
             message: "Registration successful! Please check your email to verify your account.",
