@@ -2,21 +2,6 @@ const mongoose = require("mongoose");
 // const AWS = require('aws-sdk');
 // const { SecretsManager } = require('aws-sdk');
 
-<<<<<<< HEAD
-const mongostr = process.env.MONGO_STR; // Load MongoDB URI from environment variables
-console.log('MongoDB URI:', mongostr);
-
-
-const connectToMongo = () => {
-    mongoose
-        .connect(mongostr)
-        .then(() => console.log("Connected to MongoDB"))
-        .catch((err) => {
-            console.error("NOT CONNECTED TO NETWORK", err); // Improved error logging
-        });
-};
-
-=======
 // // Set your region
 // const region = 'us-east-1'; // Change this to your desired region
 // AWS.config.update({ region });
@@ -61,6 +46,5 @@ const connectToMongo = async () => {
         console.error("NOT CONNECTED TO NETWORK", err); // Improved error logging
     }
 };
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
 
 module.exports = connectToMongo;

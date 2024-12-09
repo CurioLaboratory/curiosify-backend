@@ -16,9 +16,6 @@ exports.getAllQuiz = async (req, res) => {
 };
 
 exports.createManualQuiz = async (req, res) => {
-<<<<<<< HEAD
-    const { language, title, questions, classLevel,subject, date, createdBy, totalQuestions,collegeName } = req.body;
-=======
   const {
     language,
     title,
@@ -30,7 +27,6 @@ exports.createManualQuiz = async (req, res) => {
     totalQuestions,
     collegeName,
   } = req.body;
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
 
   // Validate the input fields
   if (
@@ -56,19 +52,6 @@ exports.createManualQuiz = async (req, res) => {
       .json({ message: "Quiz with this title already exists" });
   }
 
-<<<<<<< HEAD
-    // Create new quiz item
-    const newQuizItem = new Quiz({
-        language,
-        title,
-        questions,
-        classLevel,
-        subject,
-        date,
-        createdBy,
-        totalQuestions,
-        collegeName
-=======
   // Create new quiz item
   const newQuizItem = new Quiz({
     language,
@@ -100,34 +83,11 @@ exports.createManualQuiz = async (req, res) => {
       itemId: newQuizItem._id,
       type: "quiz",
       message: `New quiz available on title: ${newQuizItem.title}`,
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
     });
 
     // Save the notification
     await notification.save();
 
-<<<<<<< HEAD
-        // Fetch all users with the role "student" and collect their emails
-        const students = await User.find({ role: 'student',classLevel:classLevel,collegeName:collegeName});
-        const studentEmails = students.map(student => student.email); // Extract emails into an array
-
-        // Create a single notification for all students
-        const notification = new Notification({
-            studentId: studentEmails, // Set studentId as an array of student emails
-            itemId: newQuizItem._id, 
-            type: 'quiz',
-            message: `New quiz available on title: ${newQuizItem.title}`,
-        });
-        
-        // Save the notification
-        await notification.save();
-
-        // Respond with success message
-        res.status(201).json({ message: 'Quiz question added successfully and students notified!' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error saving quiz question or sending notifications' });
-    }
-=======
     // Respond with success message
     res.status(201).json({
       message: "Quiz question added successfully and students notified!",
@@ -138,7 +98,6 @@ exports.createManualQuiz = async (req, res) => {
       .status(500)
       .json({ error: "Error saving quiz question or sending notifications" });
   }
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
 };
 
 exports.deleteQuiz = async (req, res) => {
@@ -146,60 +105,6 @@ exports.deleteQuiz = async (req, res) => {
   const userId = req.user.id;
   const user = await User.findById(userId);
 
-<<<<<<< HEAD
-    const quiz = await Quiz.findById(id);
-    if (!quiz) {
-        return res.status(404).json({ message: "Quiz not found" });
-    }
-    if (quiz.createdBy !== user.email) {
-        res.status(400).json({ message: "not the valid user" });
-    }
-    try {
-        await Quiz.findByIdAndDelete(id);
-        res.status(200).json({ success: true, message: "Quiz deleted successfully" });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-}
-
-exports.createAIquiz = async (req, res) => {
-    const { language, title, questions, totalQuestions, createdBy, date,subject,classLevel,collegeName} = req.body;
-
-    try {
-        // Create a new quiz instance
-        const newQuizItem = new Quiz({
-            language,
-            title,
-            subject,
-            questions,
-            totalQuestions,
-            createdBy,
-            date,
-            classLevel,
-            collegeName
-        });
-        // Save the quiz to the database
-        await newQuizItem.save();
-         // Fetch all users with the role "student" and collect their emails
-         const students = await User.find({ role: 'student',classLevel:classLevel,collegeName:collegeName});
-         const studentEmails = students.map(student => student.email); // Extract emails into an array
- 
-         // Create a single notification for all students
-         const notification = new Notification({
-             studentId: studentEmails, // Set studentId as an array of student emails
-             itemId: newQuizItem._id, 
-             type: 'quiz',
-             message: `New quiz available on title: ${newQuizItem.title}`,
-         });
-         
-         // Save the notification
-         await notification.save();
-         res.status(201).json({ message: 'Quiz question added successfully and students notified!' });
-        
-    } catch (error) {
-        console.error("Error saving quiz:", error); // Log the error for debugging
-        res.status(500).json({ message: 'Error saving quiz question', error: error.message });
-=======
   const quiz = await Quiz.findById(id);
   if (!quiz) {
     return res.status(404).json({ message: "Quiz not found" });
@@ -301,7 +206,6 @@ exports.genrateAIquize = async (req, res) => {
     if (startPage && endPage) {
       const pages = pdfText.split("\n");
       pagesText = pages.slice(startPage - 1, endPage).join("\n");
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
     }
     const prompt = `
       You are a quiz generator. Based on the following text, generate ${numberOfQuestions} ${questionType} questions for a quiz at the ${level} level.

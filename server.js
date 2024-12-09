@@ -27,12 +27,8 @@ app.get('/test', (req, res) => {
     res.send("Test API success");
 });
 
-<<<<<<< HEAD
-const port = process.env.PORT || 5001;
-=======
 // Routes
 app.use("/api", require("./routes/index")); // Your routes
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
 
 // Redis connection setup
 redisClient.on('connect', () => {

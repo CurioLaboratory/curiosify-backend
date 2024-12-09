@@ -1,11 +1,8 @@
 const User = require("../../models/auth/User");
 const Event = require('../../models/events/Event')
 const Notification = require('../../models/notification/Notification')
-<<<<<<< HEAD
-=======
 const io=require('../../server')
 
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
 exports.getallevents = async (req, res) => {
     const { email } = req.query; 
 
@@ -27,11 +24,7 @@ exports.getallevents = async (req, res) => {
 
 exports.addevents = async (req, res) => {
     const { title, summary, date,poster } = req.body;
-<<<<<<< HEAD
-    console.log(poster);
-=======
    // console.log(poster);
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
     const userId = req.user.id;
     const user = await User.findById(userId);
 
