@@ -4,7 +4,7 @@ const Notification = require("../../models/notification/Notification");
 const fs = require("fs");
 const pdf = require("pdf-parse");
 const { OpenAI } = require("openai");
-
+const { PDFDocument } = require("pdf-lib");
 exports.getAllQuiz = async (req, res) => {
   const { userId } = req.query;
   try {
@@ -207,10 +207,10 @@ exports.genrateAIquize = async (req, res) => {
     - Text: ${pagesText}
     - Difficulty Level: ${quizLevel}
     - Question Type: ${questionType} (${
-    questionType === "Multiple Single choice"
-      ? "with 4 options and correct answer"
-      : "subjective with a detailed answer"
-  })
+      questionType === "Multiple Single choice"
+        ? "with 4 options and correct answer"
+        : "subjective with a detailed answer"
+    })
 
     Response format for ${
       questionType === "Multiple Single choice"
@@ -403,3 +403,233 @@ exports.generateQuizBasedOnTopic = async (req, res) => {
     });
   }
 };
+
+exports.downloadQuestionsPDF = async (req, res) => {
+  try {
+    const { questions } = req.body; // Extract questions array from the request body
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res
+        .status(400)
+        .send("Questions array is required and cannot be empty");
+    }
+
+    // Create a new PDF document
+    const pdfDoc = await PDFDocument.create();
+    const pageWidth = 600;
+    const pageHeight = 800;
+    const fontSize = 12;
+    const margin = 50;
+
+    // Helper to add text with word wrap
+    const addTextWithWordWrap = (
+      page,
+      text,
+      x,
+      y,
+      maxWidth,
+      fontSize,
+      lineHeight
+    ) => {
+      const words = text.split(" ");
+      let line = "";
+      const lines = [];
+
+      for (const word of words) {
+        const testLine = line ? `${line} ${word}` : word;
+        const testLineWidth = testLine.length * fontSize * 0.5; // Approximate width
+
+        if (testLineWidth > maxWidth) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = testLine;
+        }
+      }
+      if (line) lines.push(line);
+
+      lines.forEach((lineText) => {
+        page.drawText(lineText, { x, y, size: fontSize });
+        y -= lineHeight;
+      });
+
+      return y;
+    };
+
+    // Loop through questions and add them to pages
+    let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+    let y = pageHeight - margin;
+    let i = 1;
+    for (const { question, options, correctAnswer } of questions) {
+      // Add question text
+
+      y = addTextWithWordWrap(
+        currentPage,
+        `Q${i}: ${question}`,
+        margin,
+        y,
+        pageWidth - 2 * margin,
+        fontSize,
+        fontSize * 1.5
+      );
+      i++;
+      // Add options
+      for (const [index, option] of options.entries()) {
+        const optionText = `${String.fromCharCode(97 + index)}) ${option}`;
+        y = addTextWithWordWrap(
+          currentPage,
+          optionText,
+          margin + 20,
+          y,
+          pageWidth - 2 * margin - 20,
+          fontSize,
+          fontSize * 1.5
+        );
+      }
+
+      // Add a blank line after each question
+      y -= fontSize * 1.5;
+
+      // Create a new page if there's no space left on the current page
+      if (y < margin + fontSize * 1.5) {
+        currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+        y = pageHeight - margin;
+      }
+    }
+
+    // Serialize the PDF to bytes
+    const pdfBytes = await pdfDoc.save();
+
+    // Set response headers to download the file
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="questions.pdf"'
+    );
+    res.send(Buffer.from(pdfBytes));
+  } catch (error) {
+    res.status(500).send("Error generating PDF");
+  }
+};
+
+exports.genrateImagesQuestion = async (req, res) => {
+  const { prompt, size = "1024x1024" } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ error: "Prompt is required" });
+  }
+
+  try {
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API,
+    });
+    // Generate image using OpenAI
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: prompt,
+      n: 1,
+      size: "1024x1024",
+    });
+
+    console.log("response", response);
+    // Extract the image URL
+    console.log("data", response.data);
+    const imageUrl = response.data[0].url;
+    res.status(200).json({ image_url: imageUrl });
+  } catch (error) {
+    console.error("Error generating image:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.genrateFlashCard = async (req, res) => {
+  try {
+    const {
+      language,
+      deckname,
+      subject,
+      studyType,
+      numberofQuestion,
+      Class,
+      startPage,
+      endPage,
+    } = req.body;
+    const pdfBuffer = req.file.buffer;
+    const parsedPdf = await pdf(pdfBuffer);
+
+    // Split text into pages
+    const pdfText = parsedPdf.text;
+    const pages = pdfText.split("\f");
+    let pagesText;
+
+    if (startPage && endPage) {
+      // endPage = max(endPage, pages.length() - 1);
+      pagesText = pages.slice(startPage - 1, endPage).join("\n");
+    } else {
+      pagesText = pdfText;
+    }
+
+    const flashcards = await generateFlashcardsWithAI(
+      pagesText,
+      studyType,
+      numberofQuestion
+    );
+
+    // Return the flashcards
+    return res.status(200).json({
+      deckname,
+      subject,
+      language,
+      Class,
+      studyType,
+      numberOfFlashcards: flashcards.length,
+      flashcards,
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while generating flashcards" });
+  }
+};
+
+async function generateFlashcardsWithAI(text, studyType, numberofQuestion) {
+  const prompt = `
+You are an expert in creating educational flashcards. Based on the text below, generate ${numberofQuestion} flashcards in the format appropriate for ${studyType}:
+TEXT:
+"""
+${text}
+"""
+FORMAT:
+[
+  { "question": "Question 1", "answer": "Answer 1" },
+  { "question": "Question 2", "answer": "Answer 2" },
+  ...
+]
+  `;
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API,
+  });
+  console.log("prompt length", prompt.length);
+  const aiResponse = await openai.chat.completions.create({
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are a helpful assistant that generates flashcard  with answers.",
+      },
+      { role: "user", content: prompt },
+    ],
+    model: "gpt-4",
+  });
+
+  const result = aiResponse.data.choices[0].text.trim();
+
+  // Parse the JSON response
+  try {
+    return JSON.parse(result);
+  } catch (error) {
+    console.error("Error parsing OpenAI response:", error);
+    throw new Error("Failed to generate flashcards.");
+  }
+}
