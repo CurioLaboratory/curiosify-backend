@@ -16,21 +16,9 @@ const app = express();
     }
 })();
 
-<<<<<<< HEAD
-
-
-connectToMongo();
-const corsOptions = {
-  origin: 'https://usecuriosify.in',  // Your frontend domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allowed methods
-  credentials: true,  // If you are using cookies or auth headers
-};
-app.use(cors());
-=======
 // Allow all origins (CORS setup for debugging)
 app.use(cors({ origin: true, credentials: true }));
 
->>>>>>> Abhishek-main
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -39,12 +27,8 @@ app.get('/test', (req, res) => {
     res.send("Test API success");
 });
 
-<<<<<<< HEAD
-const port = process.env.PORT || 5001;
-=======
 // Routes
 app.use("/api", require("./routes/index")); // Your routes
->>>>>>> 968cdb5bf0f769a790daaef454d216c4e25db557
 
 // Redis connection setup
 redisClient.on('connect', () => {
