@@ -569,7 +569,7 @@ exports.genrateFlashCard = async (req, res) => {
       pagesText = pdfText;
     }
 
-    const flashcards = await generateFlashcardsWithAI(
+    const flashcards = await generateFlashcardsWithAIUsingPDF(
       pagesText,
       studyType,
       numberofQuestion
@@ -593,7 +593,7 @@ exports.genrateFlashCard = async (req, res) => {
   }
 };
 
-async function generateFlashcardsWithAI(text, studyType, numberofQuestion) {
+async function generateFlashcardsWithAIUsingPDF(text, studyType, numberofQuestion) {
   const prompt = `
 You are an expert in creating educational flashcards. Based on the text below, generate ${numberofQuestion} flashcards in the format appropriate for ${studyType}:
 TEXT:
@@ -623,7 +623,87 @@ FORMAT:
     model: "gpt-4",
   });
 
-  const result = aiResponse.data.choices[0].text.trim();
+  const result = aiResponse.choices[0].message.content.trim();
+
+  // Parse the JSON response
+  try {
+    return JSON.parse(result);
+  } catch (error) {
+    console.error("Error parsing OpenAI response:", error);
+    throw new Error("Failed to generate flashcards.");
+  }
+}
+
+
+exports.genrateFlashCardUsingText = async (req, res) => {
+  try {
+    const {
+      language,
+      deckname,
+      topic,
+      level,
+      subject,
+      studyType,
+      numberofQuestion,
+      Class,
+    } = req.body;
+    
+    const flashcards = await generateFlashcardsWithAIUsingText(
+      topic,
+      level,
+      studyType,
+      numberofQuestion
+    );
+
+    // Return the flashcards
+    return res.status(200).json({
+      deckname,
+      subject,
+      language,
+      Class,
+      studyType,
+      numberOfFlashcards: flashcards.length,
+      flashcards,
+    });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while generating flashcards" });
+  }
+};
+
+async function generateFlashcardsWithAIUsingText(topic,level, studyType, numberofQuestion) {
+  const prompt = `
+You are an expert in creating educational flashcards. Based on the topic below, generate ${numberofQuestion} flashcards in the format appropriate for ${studyType} of level ${level}:
+Topic:
+"""
+${topic}
+"""
+FORMAT:
+[
+  { "question": "Question 1", "answer": "Answer 1" },
+  { "question": "Question 2", "answer": "Answer 2" },
+  ...
+]
+  `;
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API,
+  });
+  // console.log("prompt length", prompt.length);
+  const aiResponse = await openai.chat.completions.create({
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are a helpful assistant that generates flashcard  with answers.",
+      },
+      { role: "user", content: prompt },
+    ],
+    model: "gpt-4",
+  });
+
+  const result = aiResponse.choices[0].message.content.trim();
 
   // Parse the JSON response
   try {

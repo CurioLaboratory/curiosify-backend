@@ -21,5 +21,7 @@ router.route("/downloadfile").post(quizControllers.downloadQuestionsPDF);
 router
   .route("/imageQuestionsUsingAI")
   .post(quizControllers.genrateImagesQuestion);
-router.route("/genrateFlashCard").post(quizControllers.genrateFlashCard);
+router.route("/genrateFlashCardUsingPDF").post(quizControllers.genrateFlashCard);
+router.route("/genrateFlashCardUsingText").post(quizControllers.genrateFlashCardUsingText);
+
 module.exports = router;
