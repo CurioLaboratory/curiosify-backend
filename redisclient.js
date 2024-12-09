@@ -1,14 +1,10 @@
 const redis = require('redis');
-
-// const redisClient = redis.createClient({
-//   url: 'rediss://rediscurio-hqoywe.serverless.use1.cache.amazonaws.com:6379', 
-// });
-const redisClient = redis.createClient();
-
 require('dotenv').config(); // Load environment variables from .env file
 
 // Create a Redis client using the REDIS_URL from the environment variables
-
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL,
+});
 
 // Handle Redis errors
 redisClient.on('error', (err) => {
