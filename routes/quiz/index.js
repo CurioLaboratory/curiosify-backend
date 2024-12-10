@@ -16,6 +16,12 @@ router
   .route("/createAIquiz")
   .post(middleware.fetchuser, quizControllers.createAIquiz);
 router.route("/genrateQuizUpload").post(quizControllers.genrateAIquize);
-router.route("/genrateQuizText").post(quizControllers.genrateQuizBasedonTopic);
+router.route("/genrateQuizText").post(quizControllers.generateQuizBasedOnTopic);
+router.route("/downloadfile").post(quizControllers.downloadQuestionsPDF);
+router
+  .route("/imageQuestionsUsingAI")
+  .post(quizControllers.genrateImagesQuestion);
+router.route("/genrateFlashCardUsingPDF").post(quizControllers.genrateFlashCard);
+router.route("/genrateFlashCardUsingText").post(quizControllers.genrateFlashCardUsingText);
 
 module.exports = router;
