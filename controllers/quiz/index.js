@@ -180,12 +180,12 @@ exports.createAIquiz = async (req, res) => {
   }
 };
 
-// genrate quiz using AI
+// genrate quiz using AI upload wala
 exports.genrateAIquize = async (req, res) => {
-  const { title, questionType, numberOfQuestions, level, startPage, endPage } =
+  const { title, questionType, numQuestions, level, startPage, endPage } =
     req.body;
   console.log("body", req.body);
-  if (!title || !questionType || !numberOfQuestions || !level) {
+  if (!title || !questionType || !numQuestions || !level) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
@@ -202,7 +202,7 @@ exports.genrateAIquize = async (req, res) => {
     }
     const quizLevel = level || "easy";
     const prompt = `
-    You are a quiz generator. Generate ${numberOfQuestions} questions strictly based on the following parameters:
+    You are a quiz generator. Generate ${numQuestions} questions strictly based on the following parameters:
     - Title: ${title}
     - Text: ${pagesText}
     - Difficulty Level: ${quizLevel}
@@ -249,24 +249,46 @@ exports.genrateAIquize = async (req, res) => {
       model: "gpt-4",
     });
 
-    let generatedQuestions = aiResponse.choices[0].message.content.trim();
+    const generatedQuestions = aiResponse.choices[0].message.content.trim();
     console.log("question", generatedQuestions);
+    
+    // Parse questions into JSON format
     const parsedQuestions = generatedQuestions
-      .split(/\n{2,}/)
+      .split(/\n{2,}/) // Split by double newlines for each question block
       .map((questionBlock) => {
-        const lines = questionBlock.split("\n");
-        const questionText = lines[0].trim();
-        const options = lines.slice(1).map((option) => option.trim());
+        const lines = questionBlock.split("\n"); // Split each block into lines
+        const questionLine = lines[0].match(/^Question \d+: (.+)$/); // Extract question text
+        const options = [];
+        let correctAnswer = null;
+    
+        // Extract options and correct answer
+        lines.slice(1).forEach((line) => {
+          const optionMatch = line.match(/^[abcd]\) (.+)$/); // Match options
+          if (optionMatch) {
+            options.push(optionMatch[1]);
+          }
+          const correctAnswerMatch = line.match(/^Correct Answer: (.+)$/); // Match correct answer
+          if (correctAnswerMatch) {
+            correctAnswer = correctAnswerMatch[1];
+          }
+        });
+    
         return {
-          question: questionText,
-          options: options,
+          question: questionLine ? questionLine[1] : null,
+          options: options.length > 0 ? options : null,
+          correctAnswer: correctAnswer || null,
         };
       });
-    // console.log("Formatted Questions:", parsedQuestions);
+    
+    // Remove any null or invalid entries
+    const validQuestions = parsedQuestions.filter((q) => q.question && q.correctAnswer);
+    
+    // Send the parsed questions as JSON
     res.status(201).json({
       message: "Quiz generated successfully!",
-      generatedQuestions: generatedQuestions,
+      generatedQuestions: validQuestions,
     });
+    
   } catch (error) {
     console.error("Error generating quiz:", error);
     res.status(500).json({
@@ -275,7 +297,7 @@ exports.genrateAIquize = async (req, res) => {
     });
   }
 };
-
+// text/ai
 exports.generateQuizBasedOnTopic = async (req, res) => {
   const {
     language,
