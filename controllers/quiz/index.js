@@ -181,16 +181,16 @@ exports.createAIquiz = async (req, res) => {
 };
 
 // genrate quiz using AI
-exports.genrateAIquize = async (req, res) => {
+exports.generateAIQuiz = async (req, res) => {
   const { title, questionType, numberOfQuestions, level, startPage, endPage } =
     req.body;
   console.log("body", req.body);
+
   if (!title || !questionType || !numberOfQuestions || !level) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    // console.log("apikey", process.env.OPENAI_API);
     const pdfBuffer = req.file.buffer;
     const parsedPdf = await pdf(pdfBuffer);
     const pdfText = parsedPdf.text;
@@ -200,40 +200,47 @@ exports.genrateAIquize = async (req, res) => {
       const pages = pdfText.split("\n");
       pagesText = pages.slice(startPage - 1, endPage).join("\n");
     }
+    console.log("type", questionType);
     const quizLevel = level || "easy";
     const prompt = `
     You are a quiz generator. Generate ${numberOfQuestions} questions strictly based on the following parameters:
     - Title: ${title}
     - Text: ${pagesText}
     - Difficulty Level: ${quizLevel}
-    - Question Type: ${questionType} (${
-      questionType === "Multiple Single choice"
-        ? "with 4 options and correct answer"
-        : "subjective with a detailed answer"
-    })
+    - Question Type: ${questionType}
 
-    Response format for ${
-      questionType === "Multiple Single choice"
-        ? "multiple-choice"
-        : "subjective"
-    } questions:
-    ${
-      questionType === "Multiple Single choice"
-        ? `
-    Question 1:Question text
-    a) Option 1
-    b) Option 2
-    c) Option 3
-    d) Option 4
-    Correct Answer: [correct option]`
-        : `
-    Question 1: Question text
-    Answer: [detailed answer]
-    `
-    }
+    Response format must always follow the specified JSON structure for each question type:
 
-    Ensure the response strictly follows the format provided and includes questions and answers relevant to the topic.
-  `;
+      For Multiple Single Choice questions:
+      {
+        "question": "The question text here",
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "correct_answer": "The correct option here",
+        questionType: "Multiple Single Choice"
+      }
+
+      For True/False questions:
+      {
+        "question": "The question text here",
+        "options": [],
+        "correct_answer": "True/False",
+        questionType: "True/False"
+      }
+
+      For Formula Based questions:
+      {
+        "question": "The question text here",
+        "options": [],
+        "correct_answer": "The explanation of the answer",
+         questionType: "Formula Based"
+      }
+
+      For Mixed Questions:
+      A combination of questions should strictly adhere to the above formats for their respective types.
+
+      Ensure the entire response is a valid JSON array of question objects, and do not include any additional text outside of the JSON format.
+`;
+
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API,
     });
@@ -250,27 +257,14 @@ exports.genrateAIquize = async (req, res) => {
     });
 
     let generatedQuestions = aiResponse.choices[0].message.content.trim();
-    console.log("question", generatedQuestions);
-    const parsedQuestions = generatedQuestions
-      .split(/\n{2,}/)
-      .map((questionBlock) => {
-        const lines = questionBlock.split("\n");
-        const questionText = lines[0].trim();
-        const options = lines.slice(1).map((option) => option.trim());
-        return {
-          question: questionText,
-          options: options,
-        };
-      });
-    // console.log("Formatted Questions:", parsedQuestions);
     res.status(201).json({
       message: "Quiz generated successfully!",
-      generatedQuestions: parsedQuestions,
+      generatedQuestions: JSON.parse(generatedQuestions),
     });
   } catch (error) {
     console.error("Error generating quiz:", error);
     res.status(500).json({
-      message: "Error generating quiz questions or sending notifications",
+      message: "Error generating quiz questions",
       error: error.message,
     });
   }
@@ -296,38 +290,43 @@ exports.generateQuizBasedOnTopic = async (req, res) => {
   try {
     const prompt = `
       You are a quiz generator. Generate ${numberOfQuestions} questions strictly based on the following parameters:
-      - Title: ${title}
-      - Topic: ${topic}
-      - Subject: ${subject}
-      - Language: ${language}
-      - Difficulty Level: ${quizLevel}
-      - Question Type: ${questionType} (${
-      questionType === "Multiple Single choice"
-        ? "with 4 options and correct answer"
-        : "subjective with a detailed answer"
-    })
+      - Title: "${title}"
+      - Topic: "${topic}"
+      - Subject: "${subject}"
+      - Language: "${language}"
+      - Difficulty Level: "${quizLevel}"
+      - Question Type: "${questionType}"
 
-      Response format for ${
-        questionType === "Multiple Single choice"
-          ? "multiple-choice"
-          : "subjective"
-      } questions:
-      ${
-        questionType === "Multiple Single choice"
-          ? `
-      Question 1:Question text
-      a) Option 1
-      b) Option 2
-      c) Option 3
-      d) Option 4
-      Correct Answer: [correct option]`
-          : `
-      Question 1: Question text
-      Answer: [detailed answer]
-      `
+      Response format must always follow the specified JSON structure for each question type:
+
+      For Multiple Single Choice questions:
+      {
+        "question": "The question text here",
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "correct_answer": "The correct option here",
+        questionType: "Multiple Single Choice"
       }
 
-      Ensure the response strictly follows the format provided and includes questions and answers relevant to the topic.
+      For True/False questions:
+      {
+        "question": "The question text here",
+        "options": [],
+        "correct_answer": "True/False",
+        questionType: "True/False"
+      }
+
+      For Formula Based questions:
+      {
+        "question": "The question text here",
+        "options": [],
+        "correct_answer": "The explanation of the answer",
+         questionType: "Formula Based"
+      }
+
+      For Mixed Questions:
+      A combination of questions should strictly adhere to the above formats for their respective types.
+
+      Ensure the entire response is a valid JSON array of question objects, and do not include any additional text outside of the JSON format.
     `;
 
     const openai = new OpenAI({
@@ -339,57 +338,17 @@ exports.generateQuizBasedOnTopic = async (req, res) => {
         {
           role: "system",
           content:
-            "You are a helpful assistant that generates quiz questions with answers.",
+            "You are a helpful assistant that generates quiz questions in strict JSON format.",
         },
         { role: "user", content: prompt },
       ],
       model: "gpt-4",
     });
 
-    const generatedContent = aiResponse.choices[0].message.content.trim();
-    console.log("Generated Questions and Answers:", generatedContent);
+    let generatedQuestions = aiResponse.choices[0].message.content.trim();
 
-    // Parse AI response into structured format
-    const parsedQuestions = generatedContent
-      .split(/Question \d+:/)
-      .filter((block) => block.trim()) // Remove empty blocks
-      .map((questionBlock) => {
-        const lines = questionBlock.split("\n").map((line) => line.trim());
-
-        if (questionType === "Multiple Single choice") {
-          // Handle multiple-choice questions
-          const questionText = lines[0].replace(/^1\.\s*/, ""); // Remove "1." prefix from the question text
-
-          const options = lines
-            .slice(1, 5) // Options are on lines 2-5
-            .map((line) => line.replace(/^[a-d]\)\s*/, "").trim()); // Remove "a) ", "b) ", etc.
-
-          const correctAnswerLine = lines.find((line) =>
-            line.startsWith("Correct Answer:")
-          );
-          const correctAnswer = correctAnswerLine
-            ? correctAnswerLine.replace("Correct Answer:", "").trim()
-            : "";
-
-          return {
-            question: questionText,
-            options: options,
-            correctAnswer: correctAnswer,
-          };
-        } else {
-          // Handle subjective questions
-          const questionText = lines[0].trim(); // First line is the question text
-          const answerLine = lines.find((line) => line.startsWith("Answer:"));
-          const answer = answerLine
-            ? answerLine.replace("Answer:", "").trim()
-            : "";
-
-          return {
-            question: questionText,
-            answer: answer,
-          };
-        }
-      });
+    // Parse the GPT response to ensure it's valid JSON
+    const parsedQuestions = JSON.parse(generatedQuestions);
 
     res.status(201).json({
       message: "Quiz generated successfully!",
@@ -588,7 +547,11 @@ exports.genrateFlashCard = async (req, res) => {
   }
 };
 
-async function generateFlashcardsWithAIUsingPDF(text, studyType, numberofQuestion) {
+async function generateFlashcardsWithAIUsingPDF(
+  text,
+  studyType,
+  numberofQuestion
+) {
   const prompt = `
 You are an expert in creating educational flashcards. Based on the text below, generate ${numberofQuestion} flashcards in the format appropriate for ${studyType}:
 TEXT:
@@ -629,7 +592,6 @@ FORMAT:
   }
 }
 
-
 exports.genrateFlashCardUsingText = async (req, res) => {
   try {
     const {
@@ -642,7 +604,7 @@ exports.genrateFlashCardUsingText = async (req, res) => {
       numberofQuestion,
       Class,
     } = req.body;
-    
+
     const flashcards = await generateFlashcardsWithAIUsingText(
       topic,
       level,
@@ -668,7 +630,12 @@ exports.genrateFlashCardUsingText = async (req, res) => {
   }
 };
 
-async function generateFlashcardsWithAIUsingText(topic,level, studyType, numberofQuestion) {
+async function generateFlashcardsWithAIUsingText(
+  topic,
+  level,
+  studyType,
+  numberofQuestion
+) {
   const prompt = `
 You are an expert in creating educational flashcards. Based on the topic below, generate ${numberofQuestion} flashcards in the format appropriate for ${studyType} of level ${level}:
 Topic:
