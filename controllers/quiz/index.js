@@ -556,17 +556,12 @@ exports.genrateFlashCard = async (req, res) => {
     } = req.body;
     const pdfBuffer = req.file.buffer;
     const parsedPdf = await pdf(pdfBuffer);
-
-    // Split text into pages
     const pdfText = parsedPdf.text;
-    const pages = pdfText.split("\f");
-    let pagesText;
+    let pagesText = pdfText;
 
     if (startPage && endPage) {
-      // endPage = max(endPage, pages.length() - 1);
+      const pages = pdfText.split("\n");
       pagesText = pages.slice(startPage - 1, endPage).join("\n");
-    } else {
-      pagesText = pdfText;
     }
 
     const flashcards = await generateFlashcardsWithAIUsingPDF(
