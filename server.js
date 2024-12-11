@@ -18,6 +18,8 @@ const upload = multer({ dest: "uploads/" });
   }
 })();
 
+
+connectToMongo();
 const corsOptions = {
   //   origin: "https://usecuriosify.in" || "http://localhost:3000", // Your frontend domain
   origin: "http://localhost:3000",
