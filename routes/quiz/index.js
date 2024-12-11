@@ -15,7 +15,7 @@ router
 router
   .route("/createAIquiz")
   .post(middleware.fetchuser, quizControllers.createAIquiz);
-router.route("/genrateQuizUpload").post(quizControllers.genrateAIquize);
+router.route("/genrateQuizUpload").post(quizControllers.generateAIQuiz);
 router.route("/genrateQuizText").post(quizControllers.generateQuizBasedOnTopic);
 router.route("/downloadfile").post(quizControllers.downloadQuestionsPDF);
 router
