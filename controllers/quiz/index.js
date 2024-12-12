@@ -182,11 +182,11 @@ exports.createAIquiz = async (req, res) => {
 
 // genrate quiz using AI
 exports.generateAIQuiz = async (req, res) => {
-  const { title, questionType, numberOfQuestions, level, startPage, endPage } =
+  const { title, questionType, numQuestions, level, startPage, endPage } =
     req.body;
   console.log("body", req.body);
 
-  if (!title || !questionType || !numberOfQuestions || !level) {
+  if (!title || !questionType || !numQuestions || !level) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
@@ -235,10 +235,18 @@ exports.generateAIQuiz = async (req, res) => {
          questionType: "Formula Based"
       }
 
-      For Mixed Questions:
-      A combination of questions should strictly adhere to the above formats for their respective types.
+      For Subjective questions:
+      {
+        "question": "The question text here",
+        "options": [],
+        "correct_answer": "The explanation of the answer",
+         questionType: "Subjective"
+      }
 
-      Ensure the entire response is a valid JSON array of question objects, and do not include any additional text outside of the JSON format.
+      For Mixed Questions:
+      A combination of questions should strictly adhere to the above formats for their respective types ans ${numQuestions} questions.
+
+      Ensure the entire response is a strictly valid JSON array of question objects even for 1 question, and do not include any additional text outside of the JSON format.
 `;
 
     const openai = new OpenAI({
@@ -324,8 +332,16 @@ exports.generateQuizBasedOnTopic = async (req, res) => {
          questionType: "Formula Based"
       }
 
+       For Subjective questions:
+      {
+        "question": "The question text here",
+        "options": [],
+        "correct_answer": "The explanation of the answer",
+         questionType: "Subjective"
+      }
+
       For Mixed Questions:
-      A combination of questions should strictly adhere to the above formats for their respective types.
+      A combination of questions should strictly adhere to the above formats for their respective types and ${numberOfQuestions} questions.
 
       Ensure the entire response is a valid JSON array of question objects, and do not include any additional text outside of the JSON format.
     `;
