@@ -69,7 +69,7 @@ exports.deleteMany = async (req, res) => {
     }
 };
 
-
+// upload
 exports.genrateFlashCard = async (req, res) => {
     try {
       const {
@@ -161,7 +161,7 @@ exports.genrateFlashCard = async (req, res) => {
       throw new Error("Failed to generate flashcards.");
     }
   }
-  
+  // using Auto
   exports.genrateFlashCardUsingText = async (req, res) => {
     try {
       const {
