@@ -19,9 +19,8 @@ exports.getallevents = async (req, res) => {
         res.json(events);
     } catch (err) {
         res.status(500).json({ message: err.message });
-        return;
     }
-}
+};
 
 exports.addevents = async (req, res) => {
     const { title, summary, date,poster } = req.body;
@@ -111,7 +110,8 @@ exports.deleteevents = async (req, res) => {
         
         // Proceed with event deletion
         await Event.findByIdAndDelete(id);
-        res.json({ success: true, message: "Event deleted successfully" });
+        return res.json({ success: true, message: "Event deleted successfully" });
+
     } catch (err) {
         // Send an error response if something goes wrong
         return res.status(500).json({ message: err.message });

@@ -1,5 +1,6 @@
-// redis.js
 const redis = require('redis');
+require('dotenv').config();
+
 // const AWS = require('aws-sdk');
 // const { SecretsManager } = require('aws-sdk');
 
@@ -40,15 +41,17 @@ const redis = require('redis');
 // })();
 
 
+// Create a Redis client using the REDIS_URL from the environment variables
 const redisClient = redis.createClient({
-  url: process.env.REDIS_URL, 
+  url: process.env.REDIS_URL,
 });
 
-
+// Handle Redis errors
 redisClient.on('error', (err) => {
   console.error('Redis error:', err);
 });
 
+// Function to connect to Redis
 const connectRedis = async () => {
   try {
     //await loadSecrets();
@@ -60,6 +63,7 @@ const connectRedis = async () => {
   }
 };
 
+// Connect to Redis
 connectRedis();
 
 module.exports = redisClient;
