@@ -182,11 +182,11 @@ exports.createAIquiz = async (req, res) => {
 
 // genrate quiz using AI
 exports.generateAIQuiz = async (req, res) => {
-  const { title, questionType, numberOfQuestions, level, startPage, endPage } =
+  const { title, questionType, numQuestions, level, startPage, endPage } =
     req.body;
   console.log("body", req.body);
 
-  if (!title || !questionType || !numberOfQuestions || !level) {
+  if (!title || !questionType || !numQuestions || !level) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
@@ -203,7 +203,7 @@ exports.generateAIQuiz = async (req, res) => {
     console.log("type", questionType);
     const quizLevel = level || "easy";
     const prompt = `
-    You are a quiz generator. Generate ${numberOfQuestions} questions strictly based on the following parameters:
+    You are a quiz generator. Generate ${numQuestions} questions strictly based on the following parameters:
     - Title: ${title}
     - Text: ${pagesText}
     - Difficulty Level: ${quizLevel}
@@ -235,10 +235,18 @@ exports.generateAIQuiz = async (req, res) => {
          questionType: "Formula Based"
       }
 
-      For Mixed Questions:
-      A combination of questions should strictly adhere to the above formats for their respective types.
+      For Subjective questions:
+      {
+        "question": "The question text here",
+        "options": [],
+        "correct_answer": "The explanation of the answer",
+         questionType: "Subjective"
+      }
 
-      Ensure the entire response is a valid JSON array of question objects, and do not include any additional text outside of the JSON format.
+      For Mixed Questions:
+      A combination of questions should strictly adhere to the above formats for their respective types ans ${numQuestions} questions.
+
+      Ensure the entire response is a strictly valid JSON array of question objects even for 1 question, and do not include any additional text outside of the JSON format.
 `;
 
     const openai = new OpenAI({
@@ -249,7 +257,7 @@ exports.generateAIQuiz = async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant that generates quiz questions.",
+          content: "You are a helpful assistant that generates quiz questions. and dont write anything just write question and option and answer",
         },
         { role: "user", content: prompt },
       ],
@@ -261,6 +269,7 @@ exports.generateAIQuiz = async (req, res) => {
       message: "Quiz generated successfully!",
       generatedQuestions: JSON.parse(generatedQuestions),
     });
+    
   } catch (error) {
     console.error("Error generating quiz:", error);
     res.status(500).json({
@@ -269,7 +278,7 @@ exports.generateAIQuiz = async (req, res) => {
     });
   }
 };
-
+// text/ai
 exports.generateQuizBasedOnTopic = async (req, res) => {
   const {
     language,
@@ -323,8 +332,16 @@ exports.generateQuizBasedOnTopic = async (req, res) => {
          questionType: "Formula Based"
       }
 
+       For Subjective questions:
+      {
+        "question": "The question text here",
+        "options": [],
+        "correct_answer": "The explanation of the answer",
+         questionType: "Subjective"
+      }
+
       For Mixed Questions:
-      A combination of questions should strictly adhere to the above formats for their respective types.
+      A combination of questions should strictly adhere to the above formats for their respective types and ${numberOfQuestions} questions.
 
       Ensure the entire response is a valid JSON array of question objects, and do not include any additional text outside of the JSON format.
     `;

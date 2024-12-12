@@ -18,6 +18,8 @@ const upload = multer({ dest: "uploads/" });
   }
 })();
 
+
+connectToMongo();
 const corsOptions = {
   //   origin: "https://usecuriosify.in" || "http://localhost:3000", // Your frontend domain
   origin: "http://localhost:3000",
@@ -33,6 +35,7 @@ app.get("/test", (req, res) => {
   res.send("Test API success");
 });
 
+// Routes
 app.use("/api", require("./routes/index")); // Your routes
 
 // Redis connection setup
@@ -44,6 +47,7 @@ redisClient.on("error", (err) => {
   console.error("Redis error:", err);
 });
 
+// Start the server
 const port = process.env.PORT || 5001;
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/`);
