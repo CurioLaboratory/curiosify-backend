@@ -489,32 +489,46 @@ exports.downloadQuestionsPDF = async (req, res) => {
 };
 
 exports.genrateImagesQuestion = async (req, res) => {
-  const { prompt, size = "1024x1024" } = req.body;
+  const { topic, numImages = 1, size = "1024x1024" } = req.body;
 
-  if (!prompt) {
-    return res.status(400).json({ error: "Prompt is required" });
+  if (!topic) {
+    return res.status(400).json({ error: "Topic is required" });
   }
 
   try {
+    // Create a scientific question prompt related to the topic
+    const questionPrompt = `Generate a scientific visual representation for the topic: ${topic}. Ensure the image is relevant to scientific concepts.`;
+
+    // Initialize OpenAI instance
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API,
     });
-    // Generate image using OpenAI
+
+    // Generate the images using OpenAI
     const response = await openai.images.generate({
       model: "dall-e-3",
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024",
+      prompt: questionPrompt,
+      n: numImages,
+      size: size,
     });
 
     console.log("response", response);
-    // Extract the image URL
-    console.log("data", response.data);
-    const imageUrl = response.data[0].url;
-    res.status(200).json({ image_url: imageUrl });
+
+    // Extract the image URLs
+    const imageUrls = response.data.map((image) => image.url);
+
+    // Generate questions based on the images
+    const questions = imageUrls.map((url, index) => ({
+      question: `Observe the image and answer the following: What scientific phenomenon or concept is depicted in Image ${index + 1}?`,
+      image_url: url,
+    }));
+
+    res.status(200).json({
+      topic: topic,
+      questions: questions,
+    });
   } catch (error) {
-    console.error("Error generating image:", error.message);
+    console.error("Error generating images and questions:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
-

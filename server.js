@@ -21,8 +21,7 @@ const upload = multer({ dest: "uploads/" });
 
 connectToMongo();
 const corsOptions = {
-  //   origin: "https://usecuriosify.in" || "http://localhost:3000", // Your frontend domain
-  origin: "http://localhost:3000",
+  origin: "https://usecuriosify.in", // Your frontend domain
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed methods
   credentials: true, // If you are using cookies or auth headers
 };
