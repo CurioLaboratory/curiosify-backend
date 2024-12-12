@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+// const AWS = require('aws-sdk');
+// const { SecretsManager } = require('aws-sdk');
 
 // // Set your region
 // const region = 'us-east-1'; // Change this to your desired region
@@ -29,7 +31,7 @@ const mongoose = require("mongoose");
 // };
 
 const connectToMongo = async () => {
-  //  await loadSecrets(); // Load secrets before connecting to MongoDB
+   // await loadSecrets(); // Load secrets before connecting to MongoDB
 
     const mongostr = process.env.MONGO_STR; // Load MongoDB URI from environment variables
     console.log('MongoDB URI:', mongostr);  // This should now log the correct URI
