@@ -4,7 +4,7 @@ const router = express.Router();
 const multer = require("multer");
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10mb limit
 });
 
 // auth routes

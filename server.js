@@ -6,7 +6,7 @@ const redisClient = require("./redisclient.js"); // Redis client
 const bodyParser = require("body-parser");
 const app = express();
 const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
+require('dotenv').config();
 
 // Load secrets before anything else
 (async () => {

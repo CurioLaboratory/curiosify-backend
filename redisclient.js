@@ -1,4 +1,6 @@
 const redis = require('redis');
+require('dotenv').config();
+
 // const AWS = require('aws-sdk');
 // const { SecretsManager } = require('aws-sdk');
 
