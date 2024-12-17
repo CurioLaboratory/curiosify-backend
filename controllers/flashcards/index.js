@@ -4,50 +4,52 @@ const pdf = require("pdf-parse");
 const { OpenAI } = require("openai");
 const { PDFDocument } = require("pdf-lib");
 exports.createManual = async (req, res) => {
-    try {
-        const {
-            deckname,
-            numberOfQues,
-            tags,
-            createdAt,
-            studyType,
-            targetClass,
-            question,
-            answer,
-        } = req.body;
-        const newFlashcard = new Flashcard({
-            deckname,
-            numberOfQues,
-            tags,
-            createdAt,
-            lastAttempted: "NA",
-            lastAttemptScore: "NA",
-            studyType,
-            targetClass,
-            question,
-            answer,
-        });
+  try {
+      const {
+          deckname,
+          numberOfQues,
+          tags,
+          createdAt,
+          studyType,
+          targetClass,
+          questions, // Now expects an array of questions with options and answers
+      } = req.body;
 
-        await newFlashcard.save();
-        res.status(201).json(newFlashcard);
-    } catch (error) {
-        res.status(500).json({
-            message: "Error creating manual flashcard",
-        });
-    }
+      const newFlashcard = new Flashcard({
+          deckname,
+          numberOfQues,
+          createdAt,
+          lastAttempted: "NA",
+          lastAttemptScore: "NA",
+          studyType,
+          targetClass,
+          questions, // Populate questions directly
+      });
+
+      await newFlashcard.save();
+
+      res.status(201).json({
+          message: "Flashcard created successfully",
+          flashcard: newFlashcard,
+      });
+  } catch (error) {
+      console.error("Error creating flashcard:", error);
+      res.status(500).json({
+          message: "Error creating manual flashcard",
+      });
+  }
 };
 
 exports.getAllFlashcards = async (req, res) => {
-    try {
-        const flashcards = await Flashcard.find();
-        res.status(200).json({
-            flashcards,
-        });
-    } catch (error) {
-        res.status(500).json({
-            message: "Error fetching all flashcards",
-        });
-    }
+  try {
+      const flashcards = await Flashcard.find();
+      res.status(200).json(flashcards);
+  } catch (error) {
+      console.error("Error fetching flashcards:", error);
+      res.status(500).json({
+          message: "Error fetching flashcards",
+      });
+  }
 };
 
 exports.deleteMany = async (req, res) => {
