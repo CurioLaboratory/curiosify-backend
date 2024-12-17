@@ -22,6 +22,7 @@ require('dotenv').config();
 connectToMongo();
 const corsOptions = {
   origin: "https://usecuriosify.in", // Your frontend domain
+  // origin: "http://localhost:3000",
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed methods
   credentials: true, // If you are using cookies or auth headers
 };
