@@ -19,11 +19,11 @@ const generateAssignment = async ({
   language,
 }) => {
   const prompt = `
-Generate a ${assignmentType} assignment in ${language} with the following details:
+Generate a ${assignmentType} assignment in ${language} ,
 
-Learning Objectives: ${learningObjectives}
+based on these topics: ${learningObjectives} and have 
 
-Grading Criteria: ${grading}
+Grading Criteria: ${grading} like this.
 
 The assignment must strictly follow this response structure:
 
@@ -32,7 +32,7 @@ The assignment must strictly follow this response structure:
     "Objective": "Provide a detailed objective that outlines the purpose of the assignment.",
     "Grading": "Provide the grading criteria as a summary or an introductory statement.",
     "Instructions": [
-        "Provide step-by-step instructions for the assignment, covering all required sections, including specific tasks students must complete.",
+        "Provide step-by-step instructions without numbering for the assignment, covering all required sections, including specific tasks students must complete.",
     ]
 }
 
@@ -55,6 +55,7 @@ Ensure the response is in valid JSON format and includes all the specified field
   }
 
   const assignmentText = response.choices[0].message.content.trim();
+  console.log("assignment", assignmentText);
   return JSON.parse(assignmentText);
 };
 
@@ -69,6 +70,10 @@ exports.createAssignment = async (req, res) => {
       const extractedText = await extractTextFromPDF(pdfBuffer);
       extractedLearningObjectives += `\n\n${extractedText}`;
     }
+    console.log("assignment", assignmentType);
+    console.log("grading", grading);
+    console.log("learning", extractedLearningObjectives);
+    console.log("language", language);
 
     // Generate assignment using OpenAI
     const assignment = await generateAssignment({
